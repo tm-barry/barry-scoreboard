@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import AppPage from './components/AppPage.vue';
-</script>
-
 <template>
   <AppPage>
     <router-view v-slot="{ Component }">
@@ -11,3 +7,7 @@ import AppPage from './components/AppPage.vue';
     </router-view>
   </AppPage>
 </template>
+
+<script setup lang="ts">
+import AppPage from './components/AppPage.vue';
+</script>

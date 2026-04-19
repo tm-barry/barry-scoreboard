@@ -9,28 +9,28 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    component: HomeView,
   },
   {
     path: '/bracket',
     name: 'bracket',
-    component: BracketView
+    component: BracketView,
   },
   {
     path: '/leaderboard',
     name: 'leaderboard',
-    component: LeaderboardView
+    component: LeaderboardView,
   },
   {
     path: '/scoreboard',
     name: 'scoreboard',
-    component: ScoreboardView
-  }
+    component: ScoreboardView,
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 });
 
 export default router;

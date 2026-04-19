@@ -3,22 +3,18 @@
     <!-- Top Navbar -->
     <header class="top-nav">
       <button class="icon-button" @click="toggle">
-        <Menu :size="20"/>
+        <Menu :size="20" />
       </button>
       <router-link to="/" class="title-link">
         <img src="../assets/barryscoreboard.svg" alt="Logo" class="logo" />
         <h2 class="title">
-          <slot name="title">BarryScoreboard</slot>
+          <slot name="title"> BarryScoreboard </slot>
         </h2>
       </router-link>
     </header>
 
     <!-- Backdrop (mobile + desktop overlay) -->
-    <div
-      v-if="isOpen"
-      class="backdrop"
-      @click="close"
-    />
+    <div v-if="isOpen" class="backdrop" @click="close" />
 
     <!-- Sidebar -->
     <aside :class="['sidebar', { open: isOpen }]">
@@ -26,21 +22,21 @@
         <span>Menu</span>
 
         <button class="icon-button close-btn" @click="close">
-        <X :size="20"/>
+          <X :size="20" />
         </button>
-    </div>
+      </div>
       <nav class="nav-links">
         <slot name="nav">
           <router-link to="/bracket">
-            <Network :size="18" class="rotate-90"/>
+            <Network :size="18" class="rotate-90" />
             <span>Bracket</span>
           </router-link>
           <router-link to="/leaderboard">
-            <ListOrdered :size="18"/>
+            <ListOrdered :size="18" />
             <span>Leaderboard</span>
           </router-link>
           <router-link to="/scoreboard">
-            <Monitor :size="18"/>
+            <Monitor :size="18" />
             <span>Scoreboard</span>
           </router-link>
         </slot>
@@ -53,6 +49,32 @@
     </main>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { ListOrdered, Menu, Monitor, Network, X } from '@lucide/vue';
+
+const route = useRoute();
+
+const isOpen = ref(false);
+
+function toggle() {
+  isOpen.value = !isOpen.value;
+}
+
+function close() {
+  isOpen.value = false;
+}
+
+watch(isOpen, (open) => {
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+
+watch(route, () => {
+  isOpen.value = false;
+});
+</script>
 
 <style scoped>
 .app-page {
@@ -171,7 +193,7 @@
 .nav-links a {
   display: flex;
   align-items: center;
-  gap: 10px; 
+  gap: 10px;
   text-decoration: none;
   color: var(--text-h);
   padding: 8px;
@@ -194,29 +216,3 @@
   padding: 16px;
 }
 </style>
-
-<script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { ListOrdered, Menu, Monitor, Network, X } from '@lucide/vue';
-
-const route = useRoute();
-
-const isOpen = ref(false);
-
-function toggle() {
-  isOpen.value = !isOpen.value
-}
-
-function close() {
-  isOpen.value = false
-}
-
-watch(isOpen, (open) => {
-  document.body.style.overflow = open ? 'hidden' : ''
-});
-
-watch(route, () => {
-  isOpen.value = false
-});
-</script>
