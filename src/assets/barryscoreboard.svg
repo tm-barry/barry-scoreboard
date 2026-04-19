@@ -3,7 +3,7 @@
    viewBox="0 0 24 24"
    version="1.1"
    id="svg13"
-   sodipodi:docname="barryscoreboard-test.svg"
+   sodipodi:docname="barryscoreboard.svg"
    inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -19,14 +19,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#505050"
      inkscape:zoom="36.875"
-     inkscape:cx="12"
+     inkscape:cx="11.986441"
      inkscape:cy="12"
      inkscape:window-width="2048"
      inkscape:window-height="1094"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer3" />
+     inkscape:current-layer="layer2" />
   <defs
      id="defs7">
     <!-- 7-segment "8" digit -->
@@ -87,18 +87,6 @@
        style="stroke-width:1.02354" />
   </g>
   <g
-     inkscape:groupmode="layer"
-     id="layer2"
-     inkscape:label="Lightning"
-     transform="translate(1.577,1.15685)">
-    <path
-       d="M -1.2,-1.8 -4,3.646 h 1.96 V 7.154 L 0.68,1.708 H -1.2 Z"
-       fill="#f4ce14"
-       id="path8"
-       inkscape:label="lightning"
-       transform="matrix(0.95,0,0,0.95,12,8.3)" />
-  </g>
-  <g
      transform="matrix(1.2,0,0,1.2,9.96,9)"
      id="g13">
     <!-- left 88 -->
@@ -131,5 +119,17 @@
            id="use11" />
       </g>
     </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Lightning"
+     transform="translate(1.577,1.15685)">
+    <path
+       d="m 11.297,2.33685 -5.32,10.3474 h 3.724 v 6.6652 l 5.168,-10.3474 h -3.572 z"
+       fill="#f4ce14"
+       id="path8"
+       inkscape:label="lightning"
+       style="stroke-width:1.9" />
   </g>
 </svg>

@@ -5,9 +5,12 @@
       <button class="icon-button" @click="toggle">
         <Menu :size="20"/>
       </button>
-      <h2 class="title">
-        <slot name="title">BarryScoreboard</slot>
-      </h2>
+      <router-link to="/" class="title-link">
+        <img src="../assets/barryscoreboard.svg" alt="Logo" class="logo" />
+        <h2 class="title">
+          <slot name="title">BarryScoreboard</slot>
+        </h2>
+      </router-link>
     </header>
 
     <!-- Backdrop (mobile + desktop overlay) -->
@@ -28,19 +31,18 @@
     </div>
       <nav class="nav-links">
         <slot name="nav">
-          <!-- Default fallback -->
-          <a href="#">
+          <router-link to="/bracket">
             <Network :size="18" class="rotate-90"/>
             <span>Bracket</span>
-          </a>
-          <a href="#">
+          </router-link>
+          <router-link to="/leaderboard">
             <ListOrdered :size="18"/>
             <span>Leaderboard</span>
-          </a>
-          <a href="#">
+          </router-link>
+          <router-link to="/scoreboard">
             <Monitor :size="18"/>
             <span>Scoreboard</span>
-          </a>
+          </router-link>
         </slot>
       </nav>
     </aside>
@@ -63,7 +65,7 @@
 .top-nav {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   height: 56px;
   padding: 0 16px;
   background: var(--bg);
@@ -76,6 +78,27 @@
 .title {
   margin: 0;
   font-size: 18px;
+}
+
+.title-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.title-link:hover {
+  opacity: 0.85;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+}
+
+.title {
+  margin: 0;
 }
 
 /* Sidebar */
@@ -160,6 +183,11 @@
   background: var(--accent-bg);
 }
 
+.nav-links a.router-link-active {
+  font-weight: bold;
+  background: var(--accent-bg);
+}
+
 /* Content */
 .content {
   flex: 1;
@@ -169,7 +197,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { ListOrdered, Menu, Monitor, Network, X } from '@lucide/vue';
+
+const route = useRoute();
 
 const isOpen = ref(false);
 
@@ -183,5 +214,9 @@ function close() {
 
 watch(isOpen, (open) => {
   document.body.style.overflow = open ? 'hidden' : ''
+});
+
+watch(route, () => {
+  isOpen.value = false
 });
 </script>
