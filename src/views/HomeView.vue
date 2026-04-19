@@ -71,8 +71,11 @@ import { ListOrdered, Monitor, Network } from '@lucide/vue';
   border-radius: 12px;
   text-decoration: none;
   color: inherit;
-  background: var(--card-bg, #1e1e1e);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+
   transition:
     transform 0.15s ease,
     background 0.15s ease;
@@ -80,7 +83,7 @@ import { ListOrdered, Monitor, Network } from '@lucide/vue';
 
 .card:hover {
   transform: translateY(-3px);
-  background: var(--card-hover-bg, #2a2a2a);
+  background: var(--card-hover-bg);
 }
 
 .card h2 {
