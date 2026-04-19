@@ -6,18 +6,12 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default [
-  // Base JS rules
   js.configs.recommended,
-
-  // TypeScript rules
   ...tseslint.configs.recommended,
-
-  // Vue rules
   ...vue.configs['flat/recommended'],
 
   // Global
   {
-    files: ['**/*.{js,ts,vue}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -34,8 +28,6 @@ export default [
       parser: vueParser,
       parserOptions: {
         parser: tseslint.parser,
-        ecmaVersion: 'latest',
-        sourceType: 'module',
       },
     },
     rules: {
