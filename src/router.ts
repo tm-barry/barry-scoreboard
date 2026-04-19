@@ -23,13 +23,13 @@ const routes = [
   },
   {
     path: '/scoreboard',
-    name: 'scoreboardboard',
+    name: 'scoreboard',
     component: ScoreboardView
   }
 ];
 
 const router = createRouter({
-  history: createWebHistory(), // important for PWA feel
+  history: createWebHistory(),
   routes
 });
 

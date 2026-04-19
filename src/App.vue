@@ -4,6 +4,10 @@ import AppPage from './components/AppPage.vue';
 
 <template>
   <AppPage>
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <keep-alive>
+        <component :is="Component" />
+      </keep-alive>
+    </router-view>
   </AppPage>
 </template>
