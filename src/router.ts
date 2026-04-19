@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import HomeView from './views/HomeView.vue';
-import BracketView from './views/BracketView.vue';
-import LeaderboardView from './views/LeaderboardView.vue';
-import ScoreboardView from './views/ScoreboardView.vue';
+import BracketView from './views/bracket/BracketView.vue';
+import BracketCreate from './views/bracket/BracketCreate.vue';
+import ScoreboardView from './views/scoreboard/ScoreboardView.vue';
 
 const routes = [
   {
@@ -17,9 +17,9 @@ const routes = [
     component: BracketView,
   },
   {
-    path: '/leaderboard',
-    name: 'leaderboard',
-    component: LeaderboardView,
+    path: '/bracket/create',
+    name: 'bracket-create',
+    component: BracketCreate,
   },
   {
     path: '/scoreboard',

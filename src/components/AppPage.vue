@@ -2,7 +2,7 @@
   <div class="app-page">
     <!-- Top Navbar -->
     <header class="top-nav">
-      <button class="icon-button" @click="toggle">
+      <button class="icon-btn" @click="toggle">
         <Menu :size="20" />
       </button>
       <router-link to="/" class="title-link">
@@ -21,7 +21,7 @@
       <div class="sidebar-header">
         <span>Menu</span>
 
-        <button class="icon-button close-btn" @click="close">
+        <button class="icon-btn close-btn" @click="close">
           <X :size="20" />
         </button>
       </div>
@@ -30,10 +30,6 @@
           <router-link to="/bracket">
             <Network :size="18" class="rotate-90" />
             <span>Bracket</span>
-          </router-link>
-          <router-link to="/leaderboard">
-            <ListOrdered :size="18" />
-            <span>Leaderboard</span>
           </router-link>
           <router-link to="/scoreboard">
             <Monitor :size="18" />
@@ -53,7 +49,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { ListOrdered, Menu, Monitor, Network, X } from '@lucide/vue';
+import { Menu, Monitor, Network, X } from '@lucide/vue';
 
 const route = useRoute();
 
