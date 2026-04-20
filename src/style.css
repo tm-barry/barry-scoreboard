@@ -72,6 +72,11 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  touch-action: manipulation;
+}
+
 body {
   margin: 0;
 }
@@ -212,6 +217,42 @@ p {
   transform: scale(0.97);
   background: var(--code-bg);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Inputs */
+input {
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  font-family: var(--sans);
+
+  color: var(--text-h);
+  background: var(--card-bg);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+/* Focus state (important for UX) */
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* Placeholder styling */
+input::placeholder {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+/* Hover (subtle, like your buttons/cards) */
+input:hover {
+  border-color: var(--accent-border);
 }
 
 /* Misc Helpers */

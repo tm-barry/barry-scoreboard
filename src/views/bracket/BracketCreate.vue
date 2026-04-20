@@ -68,6 +68,14 @@ const teams = ref<Team[]>([
 
 function addTeam() {
   teams.value.push({ name: '', seed: null });
+
+  // Scroll to bottom in case new item goes off screen
+  requestAnimationFrame(() => {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth',
+    });
+  });
 }
 
 function removeTeam(index: number) {
