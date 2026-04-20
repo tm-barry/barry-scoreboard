@@ -84,7 +84,8 @@ function removeTeam(index: number) {
 
 function generateDefaultName() {
   const now = new Date();
-  return `Bracket ${now.toISOString().slice(0, 16)}`;
+  const local = now.toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16);
+  return `Bracket ${local}`;
 }
 
 function generateBracket() {
