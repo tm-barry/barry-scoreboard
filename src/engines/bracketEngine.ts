@@ -1,4 +1,10 @@
-import type { Bracket, Match } from '../interfaces/bracket';
+import type {
+  Bracket,
+  ByeSlot,
+  Match,
+  Team,
+  TeamSlot,
+} from '../interfaces/bracket';
 
 /**
  * Finds the next power of two
@@ -20,29 +26,14 @@ export function createMatch(round: number, position: number): Match {
     id: crypto.randomUUID(),
     round,
     position,
-    complete: false,
-
-    teamAId: null,
-    teamBId: null,
-
+    teamA: { type: 'pending' },
+    teamB: { type: 'pending' },
     scoreA: null,
     scoreB: null,
-
-    winnerId: null,
-
+    winner: null,
     nextMatchId: null,
     nextSlot: null,
   };
-}
-
-/**
- * Checks if a given id is a bye id (< 0)
- * @param id Id to check
- * @returns True is id is a bye id
- */
-export function isBye(id: string | null): boolean {
-  if (!id) return false;
-  return id.startsWith('-');
 }
 
 /**
@@ -59,26 +50,30 @@ export function generateSingleEliminationMatches(bracket: Bracket): void {
   const size = nextPowerOfTwo(bracket.teams.length);
   const totalRounds = Math.log2(size);
 
-  const matches: Match[] = [];
+  bracket.teams = normalizeAndSortTeams(bracket.teams);
+
+  const slots = generateSeedingSlots(size);
+  const seedMap = new Map<number, (typeof bracket.teams)[number]>();
+
+  for (const team of bracket.teams) {
+    seedMap.set(team.seed!, team);
+  }
 
   // Handle byes
-  const seeded = [...bracket.teams];
-  let byeId = -1;
-  while (seeded.length < size) {
-    seeded.push({
-      id: byeId.toString(),
-      name: '',
-    });
-    byeId--;
-  }
+  const seeded: (TeamSlot | ByeSlot)[] = slots.map((seed) => {
+    const team = seedMap.get(seed);
+    return team ? { type: 'team', id: team.id } : { type: 'bye' };
+  });
+
+  const matches: Match[] = [];
 
   // Setup Round 1
   const roundMatches: Match[] = [];
   for (let i = 0; i < size; i += 2) {
     const match = createMatch(1, i / 2);
 
-    match.teamAId = seeded[i].id;
-    match.teamBId = seeded[i + 1].id;
+    match.teamA = seeded[i];
+    match.teamB = seeded[i + 1];
 
     roundMatches.push(match);
   }
@@ -127,6 +122,36 @@ export function generateSingleEliminationMatches(bracket: Bracket): void {
   resolveByes(bracket);
 }
 
+export function normalizeAndSortTeams(teams: Team[]) {
+  const seeded = teams
+    .filter((t) => typeof t.seed === 'number')
+    .sort((a, b) => a.seed! - b.seed!);
+
+  const unseeded = teams.filter((t) => typeof t.seed !== 'number');
+
+  const all = [...seeded, ...unseeded];
+
+  let seed = 1;
+  for (const t of all) {
+    t.seed = seed++;
+  }
+
+  return all.sort((a, b) => a.seed! - b.seed!);
+}
+
+export function generateSeedingSlots(size: number): number[] {
+  if (size === 2) return [1, 2];
+
+  const prev = generateSeedingSlots(size / 2);
+  const result: number[] = [];
+
+  for (const v of prev) {
+    result.push(v, size + 1 - v);
+  }
+
+  return result;
+}
+
 /**
  * Manually applies the win to winnerId
  * Useful for byes
@@ -137,11 +162,10 @@ export function generateSingleEliminationMatches(bracket: Bracket): void {
  */
 export function applyWin(
   match: Match,
-  winnerId: string,
+  winner: TeamSlot,
   matchMap: Map<string, Match>,
 ): void {
-  match.winnerId = winnerId;
-  match.complete = true;
+  match.winner = winner;
 
   if (!match.nextMatchId || !match.nextSlot) return;
 
@@ -150,21 +174,17 @@ export function applyWin(
 
   // place winner into next match
   if (match.nextSlot === 'A') {
-    next.teamAId = winnerId;
+    next.teamA = winner;
   } else {
-    next.teamBId = winnerId;
+    next.teamB = winner;
   }
 
-  // check next match for byes
-  const isByeA = isBye(next.teamAId);
-  const isByeB = isBye(next.teamBId);
-
-  if (isByeA && next.teamBId) {
-    applyWin(next, next.teamBId, matchMap);
+  if (next.teamA.type === 'bye' && next.teamB.type === 'team') {
+    applyWin(next, next.teamB, matchMap);
   }
 
-  if (isByeB && next.teamAId) {
-    applyWin(next, next.teamAId, matchMap);
+  if (next.teamB.type === 'bye' && next.teamA.type === 'team') {
+    applyWin(next, next.teamA, matchMap);
   }
 }
 
@@ -176,19 +196,19 @@ export function resolveByes(bracket: Bracket): void {
   const matchMap = new Map(bracket.matches.map((m) => [m.id, m]));
 
   for (const match of bracket.matches) {
-    if (match.complete) continue;
+    if (match.winner) continue;
 
-    const isByeA = isBye(match.teamAId);
-    const isByeB = isBye(match.teamBId);
+    const isByeA = match.teamA.type === 'bye';
+    const isByeB = match.teamB.type === 'bye';
 
     if (isByeA && isByeB) continue;
 
-    if (isByeA && match.teamBId) {
-      applyWin(match, match.teamBId, matchMap);
+    if (isByeA && match.teamB.type === 'team') {
+      applyWin(match, match.teamB, matchMap);
     }
 
-    if (isByeB && match.teamAId) {
-      applyWin(match, match.teamAId, matchMap);
+    if (isByeB && match.teamA.type === 'team') {
+      applyWin(match, match.teamA, matchMap);
     }
   }
 }

@@ -1,11 +1,8 @@
 export interface Bracket {
   id: string;
   name: string;
-
   teams: Team[];
-
   matches: Match[];
-
   createdAt: number;
   updatedAt: number;
 }
@@ -16,20 +13,30 @@ export interface Team {
   seed?: number;
 }
 
+export interface TeamSlot {
+  type: 'team';
+  id: string;
+}
+
+export interface ByeSlot {
+  type: 'bye';
+}
+
+export interface PendingSlot {
+  type: 'pending';
+}
+
+export type Slot = TeamSlot | ByeSlot | PendingSlot;
+
 export interface Match {
   id: string;
   round: number;
   position: number;
-  complete: boolean;
-
-  teamAId: string | null;
-  teamBId: string | null;
-
+  teamA: Slot;
+  teamB: Slot;
   scoreA: number | null;
   scoreB: number | null;
-
-  winnerId: string | null;
-
+  winner: TeamSlot | null;
   nextMatchId: string | null;
   nextSlot: 'A' | 'B' | null;
 }

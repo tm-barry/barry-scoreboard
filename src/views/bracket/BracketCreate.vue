@@ -53,21 +53,28 @@
 
 <script setup lang="ts">
 import { onActivated, ref } from 'vue';
+
+// Components
 import { Network, Plus, Trash } from '@lucide/vue';
 
-type Team = {
-  name: string;
-  seed: number | null;
-};
+// Interfaces
+import type { Bracket, Team } from '../../interfaces/bracket';
+
+// Engines
+import { generateSingleEliminationMatches } from '../../engines/bracketEngine';
 
 const bracketName = ref('');
 const teams = ref<Team[]>([
-  { name: '', seed: null },
-  { name: '', seed: null },
+  { id: '', name: '', seed: 1 },
+  { id: '', name: '', seed: 2 },
 ]);
 
 function addTeam() {
-  teams.value.push({ name: '', seed: null });
+  const maxSeed =
+    teams.value.length > 0
+      ? Math.max(...teams.value.map((t) => t.seed ?? 0))
+      : 0;
+  teams.value.push({ id: '', name: '', seed: maxSeed + 1 });
 
   // Scroll to bottom in case new item goes off screen
   requestAnimationFrame(() => {
@@ -91,21 +98,28 @@ function generateDefaultName() {
 function generateBracket() {
   const finalName = bracketName.value.trim() || generateDefaultName();
 
-  const cleanTeams = teams.value.map((t, index) => {
+  const cleanTeams: Team[] = teams.value.map((t, index) => {
     const name = t.name.trim() || `Team ${index + 1}`;
 
     return {
+      id: crypto.randomUUID(),
       name,
-      seed: t.seed ?? 0,
+      seed: t.seed ?? 1,
     };
   });
 
-  const payload = {
+  const now = Date.now();
+  const bracket: Bracket = {
+    id: crypto.randomUUID(),
     name: finalName,
     teams: cleanTeams,
+    matches: [],
+    createdAt: now,
+    updatedAt: now,
   };
 
-  console.log('Generated bracket:', payload);
+  generateSingleEliminationMatches(bracket);
+  console.log('Generated bracket:', bracket);
 
   // later:
   // store.createBracket(payload)
@@ -115,8 +129,8 @@ function generateBracket() {
 onActivated(() => {
   bracketName.value = '';
   teams.value = [
-    { name: '', seed: null },
-    { name: '', seed: null },
+    { id: '', name: '', seed: 1 },
+    { id: '', name: '', seed: 2 },
   ];
 });
 </script>
