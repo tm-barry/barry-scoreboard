@@ -21,7 +21,7 @@ export interface BracketLayout {
   height: number;
 }
 
-// ---- tuning constants ----
+// Constants
 export const MATCH_WIDTH = 220;
 export const TEAM_HEIGHT = 64;
 export const MATCH_HEIGHT = TEAM_HEIGHT * 2;
@@ -29,19 +29,11 @@ export const ROUND_GAP = 340;
 export const MATCH_GAP = 36;
 export const TEAM_GAP = 10;
 
-/**
- * MAIN ENTRY
- */
 export function computeBracketLayout(matches: Match[]): BracketLayout {
   const childrenMap = buildChildrenMap(matches);
   const rounds = groupByRound(matches);
   const maxRound = Math.max(...rounds.keys());
-
   const layouts = new Map<string, MatchLayout>();
-
-  // ------------------------
-  // ROUND 1 (stack vertically)
-  // ------------------------
   let yCursor = 0;
 
   for (const match of rounds.get(1) ?? []) {
@@ -51,9 +43,6 @@ export function computeBracketLayout(matches: Match[]): BracketLayout {
     yCursor += MATCH_HEIGHT + MATCH_GAP;
   }
 
-  // ------------------------
-  // HIGHER ROUNDS
-  // ------------------------
   for (let round = 2; round <= maxRound; round++) {
     const matches = rounds.get(round) ?? [];
 
@@ -85,9 +74,6 @@ export function computeBracketLayout(matches: Match[]): BracketLayout {
   };
 }
 
-/**
- * Create match box + anchors
- */
 function createLayout(id: string, x: number, y: number): MatchLayout {
   return {
     matchId: id,
@@ -104,9 +90,6 @@ function createLayout(id: string, x: number, y: number): MatchLayout {
   };
 }
 
-/**
- * parent -> children
- */
 function buildChildrenMap(matches: Match[]) {
   const map = new Map<string, string[]>();
 
@@ -123,9 +106,6 @@ function buildChildrenMap(matches: Match[]) {
   return map;
 }
 
-/**
- * round grouping
- */
 function groupByRound(matches: Match[]) {
   const map = new Map<number, Match[]>();
 
