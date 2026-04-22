@@ -3,7 +3,8 @@
     <svg
       class="connections"
       :viewBox="`0 0 ${layout.width} ${layout.height}`"
-      preserveAspectRatio="none"
+      :width="layout.width"
+      :height="layout.height"
     >
       <path
         v-for="(e, i) in edges"
@@ -134,7 +135,7 @@ watchEffect(() => {
 .bracket-canvas {
   position: relative;
   overflow: visible;
-  margin-bottom: 16px;
+  margin: 16px;
 }
 
 .match {

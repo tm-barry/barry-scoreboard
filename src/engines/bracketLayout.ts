@@ -25,7 +25,7 @@ export interface BracketLayout {
 export const MATCH_WIDTH = 220;
 export const TEAM_HEIGHT = 64;
 export const MATCH_HEIGHT = TEAM_HEIGHT * 2;
-export const ROUND_GAP = 340;
+export const ROUND_GAP = 120;
 export const MATCH_GAP = 36;
 export const TEAM_GAP = 10;
 
@@ -58,7 +58,7 @@ export function computeBracketLayout(matches: Match[]): BracketLayout {
       const avgY =
         childLayouts.reduce((sum, c) => sum + c.y, 0) / childLayouts.length;
 
-      const x = (round - 1) * ROUND_GAP;
+      const x = (round - 1) * (MATCH_WIDTH + ROUND_GAP);
 
       const layout = createLayout(match.id, x, avgY);
       layouts.set(match.id, layout);
@@ -69,7 +69,7 @@ export function computeBracketLayout(matches: Match[]): BracketLayout {
 
   return {
     matchLayouts: layouts,
-    width: maxRound * ROUND_GAP + MATCH_WIDTH,
+    width: maxRound * MATCH_WIDTH + (maxRound - 1) * ROUND_GAP,
     height: Math.max(...values.map((v) => v.y)) + MATCH_HEIGHT,
   };
 }
