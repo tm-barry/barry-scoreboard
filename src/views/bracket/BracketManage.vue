@@ -1,5 +1,5 @@
 <template>
-  <div class="bracket-canvas" :style="canvasStyle">
+  <div v-if="bracket" class="bracket-canvas" :style="canvasStyle">
     <svg
       class="connections"
       :viewBox="`0 0 ${layout.width} ${layout.height}`"
@@ -17,13 +17,14 @@
     </svg>
 
     <div
-      v-for="match in bracket.matches"
+      v-for="match in matches"
       :key="match.id"
       class="match"
       :style="getMatchStyle(match.id)"
     >
       <button
-        class="secondary-btn team"
+        class="team"
+        :class="isWinner(match, match.teamA) ? 'primary-btn' : 'secondary-btn'"
         :style="getTeamStyle()"
         :disabled="teamButtonDisabled(match.teamA)"
       >
@@ -34,7 +35,8 @@
       </button>
 
       <button
-        class="secondary-btn team"
+        class="team"
+        :class="isWinner(match, match.teamB) ? 'primary-btn' : 'secondary-btn'"
         :style="getTeamStyle()"
         :disabled="teamButtonDisabled(match.teamB)"
       >
@@ -48,10 +50,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type StyleValue, watchEffect } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, type StyleValue } from 'vue';
 import { useBracketStore } from '../../stores/bracket';
-import type { Slot } from '../../interfaces/bracket';
+import type { Match, Slot } from '../../interfaces/bracket';
 import {
   computeBracketLayout,
   computeEdges,
@@ -61,31 +62,33 @@ import {
 } from '../../engines/bracketLayout';
 import { storeToRefs } from 'pinia';
 
-const router = useRouter();
 const bracketStore = useBracketStore();
-const { currentBracket } = storeToRefs(bracketStore);
+const { currentBracket: bracket } = storeToRefs(bracketStore);
 
-const bracket = computed(() => currentBracket.value!);
+const matches = computed(() => bracket.value?.matches ?? []);
 
-const canvasStyle = computed(() => ({
-  width: `${layout.value.width}px`,
-  height: `${layout.value.height}px`,
-}));
+const canvasStyle = computed(() => {
+  if (!layout.value) return {};
+  return {
+    width: `${layout.value.width}px`,
+    height: `${layout.value.height}px`,
+  };
+});
 
-const layout = computed(() => computeBracketLayout(bracket.value.matches));
+const layout = computed(() => computeBracketLayout(matches.value));
 
 const edges = computed(() =>
-  computeEdges(bracket.value.matches, layout.value.matchLayouts),
+  computeEdges(matches.value, layout.value.matchLayouts),
 );
 
-function teamButtonDisabled(team: Slot): boolean {
-  return team.type !== 'team';
+function teamButtonDisabled(slot: Slot): boolean {
+  return slot.type !== 'team';
 }
 
 function getTeamName(slot: Slot): string {
   switch (slot.type) {
     case 'team': {
-      const team = bracket.value.teams.find((t) => t.id === slot.id);
+      const team = bracket.value?.teams.find((t) => t.id === slot.id);
       return team ? team.name : 'Unknown Team';
     }
     case 'pending':
@@ -98,7 +101,7 @@ function getTeamName(slot: Slot): string {
 function getTeamSeed(slot: Slot): number | undefined {
   switch (slot.type) {
     case 'team': {
-      const team = bracket.value.teams.find((t) => t.id === slot.id);
+      const team = bracket.value?.teams.find((t) => t.id === slot.id);
       return team?.seed;
     }
     default:
@@ -118,17 +121,15 @@ function getMatchStyle(matchId: string): StyleValue {
   };
 }
 
+function isWinner(match: Match, slot: Slot): boolean {
+  return !!match.winner && slot.type === 'team' && slot.id === match.winner.id;
+}
+
 function getTeamStyle(): StyleValue {
   return {
     height: `${TEAM_HEIGHT}px`,
   };
 }
-
-watchEffect(() => {
-  if (!currentBracket.value) {
-    router.replace({ name: 'bracket' });
-  }
-});
 </script>
 
 <style scoped>

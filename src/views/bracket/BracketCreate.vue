@@ -100,7 +100,7 @@ function generateDefaultName() {
   return `Bracket ${local}`;
 }
 
-function generateBracket() {
+async function generateBracket() {
   const finalName = bracketName.value.trim() || generateDefaultName();
 
   const cleanTeams: Team[] = teams.value.map((t, index) => {
@@ -114,7 +114,7 @@ function generateBracket() {
   });
 
   const now = Date.now();
-  const bracket: Bracket = {
+  let bracket: Bracket = {
     id: crypto.randomUUID(),
     name: finalName,
     teams: cleanTeams,
@@ -123,8 +123,9 @@ function generateBracket() {
     updatedAt: now,
   };
 
-  generateSingleEliminationMatches(bracket);
+  bracket = generateSingleEliminationMatches(bracket);
   bracketStore.setCurrentBracket(bracket);
+  await bracketStore.saveCurrent();
   router.push({ name: 'bracket-manage' });
 }
 
