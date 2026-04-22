@@ -53,6 +53,11 @@
 
 <script setup lang="ts">
 import { onActivated, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useBracketStore } from '../../stores/bracket';
+
+const bracketStore = useBracketStore();
+const router = useRouter();
 
 // Components
 import { Network, Plus, Trash } from '@lucide/vue';
@@ -119,11 +124,8 @@ function generateBracket() {
   };
 
   generateSingleEliminationMatches(bracket);
-  console.log('Generated bracket:', bracket);
-
-  // later:
-  // store.createBracket(payload)
-  // router.push(`/bracket/${id}`)
+  bracketStore.setCurrentBracket(bracket);
+  router.push({ name: 'bracket-manage' });
 }
 
 onActivated(() => {

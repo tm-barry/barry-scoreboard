@@ -47,7 +47,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type StyleValue } from 'vue';
+import { computed, type StyleValue, watchEffect } from 'vue';
+import { useRouter } from 'vue-router';
+import { useBracketStore } from '../../stores/bracket';
 import type { Slot } from '../../interfaces/bracket';
 import {
   computeBracketLayout,
@@ -56,17 +58,23 @@ import {
   TEAM_GAP,
   TEAM_HEIGHT,
 } from '../../engines/bracketLayout';
-import { bracket } from './testData';
+import { storeToRefs } from 'pinia';
+
+const router = useRouter();
+const bracketStore = useBracketStore();
+const { currentBracket } = storeToRefs(bracketStore);
+
+const bracket = computed(() => currentBracket.value!);
 
 const canvasStyle = computed(() => ({
   width: `${layout.value.width}px`,
   height: `${layout.value.height}px`,
 }));
 
-const layout = computed(() => computeBracketLayout(bracket.matches));
+const layout = computed(() => computeBracketLayout(bracket.value.matches));
 
 const edges = computed(() =>
-  computeEdges(bracket.matches, layout.value.matchLayouts),
+  computeEdges(bracket.value.matches, layout.value.matchLayouts),
 );
 
 function teamButtonDisabled(team: Slot): boolean {
@@ -76,7 +84,7 @@ function teamButtonDisabled(team: Slot): boolean {
 function getTeamName(slot: Slot): string {
   switch (slot.type) {
     case 'team': {
-      const team = bracket.teams.find((t) => t.id === slot.id);
+      const team = bracket.value.teams.find((t) => t.id === slot.id);
       return team ? team.name : 'Unknown Team';
     }
     case 'pending':
@@ -89,7 +97,7 @@ function getTeamName(slot: Slot): string {
 function getTeamSeed(slot: Slot): number | undefined {
   switch (slot.type) {
     case 'team': {
-      const team = bracket.teams.find((t) => t.id === slot.id);
+      const team = bracket.value.teams.find((t) => t.id === slot.id);
       return team?.seed;
     }
     default:
@@ -114,6 +122,12 @@ function getTeamStyle(): StyleValue {
     height: `${TEAM_HEIGHT}px`,
   };
 }
+
+watchEffect(() => {
+  if (!currentBracket.value) {
+    router.replace({ name: 'bracket' });
+  }
+});
 </script>
 
 <style scoped>

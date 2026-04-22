@@ -10,6 +10,9 @@
         <h2 class="title">
           <slot name="title"> BarryScoreboard </slot>
         </h2>
+        <h3 class="sub-title">
+          <slot name="sub-title"> {{ subTitle }} </slot>
+        </h3>
       </router-link>
     </header>
 
@@ -47,11 +50,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useBracketStore } from '../stores/bracket';
 import { Menu, Monitor, Network, X } from '@lucide/vue';
 
 const route = useRoute();
+const bracketStore = useBracketStore();
 
 const isOpen = ref(false);
 
@@ -62,6 +67,21 @@ function toggle() {
 function close() {
   isOpen.value = false;
 }
+
+const subTitle = computed(() => {
+  switch (route.name) {
+    case 'bracket':
+      return '| Brackets';
+    case 'bracket-create':
+      return '| Create Bracket';
+    case 'bracket-manage': {
+      const bracketName = bracketStore.currentBracket?.name;
+      return `| ${bracketName ?? 'Bracket'}`;
+    }
+    default:
+      return undefined;
+  }
+});
 
 watch(isOpen, (open) => {
   document.body.style.overflow = open ? 'hidden' : '';
@@ -99,6 +119,11 @@ watch(route, () => {
   font-size: 18px;
 }
 
+.sub-title {
+  margin: 0;
+  font-size: 16px;
+}
+
 .title-link {
   display: flex;
   align-items: center;
@@ -114,10 +139,6 @@ watch(route, () => {
 .logo {
   width: 32px;
   height: 32px;
-}
-
-.title {
-  margin: 0;
 }
 
 /* Sidebar */

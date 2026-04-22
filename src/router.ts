@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useBracketStore } from './stores/bracket';
 
 import HomeView from './views/HomeView.vue';
 import BracketView from './views/bracket/BracketView.vue';
@@ -26,6 +27,13 @@ const routes = [
     path: '/bracket/manage',
     name: 'bracket-manage',
     component: BracketManage,
+    beforeEnter: () => {
+      const store = useBracketStore();
+
+      if (!store.currentBracket) {
+        return { name: 'bracket' };
+      }
+    },
   },
   {
     path: '/scoreboard',
