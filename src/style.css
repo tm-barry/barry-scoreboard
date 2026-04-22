@@ -12,6 +12,8 @@
   --color-primary-active: #00549a;
   --color-primary-bg: rgba(0, 115, 207, 0.12);
   --color-primary-border: rgba(0, 115, 207, 0.45);
+  --color-primary-disabled: #b3c2d6;
+  --text-secondary: #84909e;
   --social-bg: rgba(243, 244, 246, 0.6);
   --shadow:
     rgba(0, 0, 0, 0.08) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
@@ -54,6 +56,8 @@
     --color-primary-active: #1d6fd6;
     --color-primary-bg: rgba(47, 144, 255, 0.18);
     --color-primary-border: rgba(47, 144, 255, 0.5);
+    --color-primary-disabled: #50607c;
+    --text-secondary: #b3b1be;
     --social-bg: rgba(31, 41, 55, 0.5);
     --shadow:
       rgba(0, 0, 0, 0.45) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
@@ -192,6 +196,13 @@ p {
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
+.primary-btn:disabled {
+  background: var(--color-primary-disabled); /* Disabled background color */
+  color: var(--text-secondary); /* Text color on disabled state */
+  cursor: not-allowed; /* Cursor to indicate the button is not clickable */
+  pointer-events: none; /* Prevents interaction with the button */
+}
+
 .secondary-btn {
   background: var(--code-bg);
   color: var(--text-h);
@@ -217,6 +228,14 @@ p {
   transform: scale(0.97);
   background: var(--code-bg);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.secondary-btn:disabled {
+  background: var(--code-bg-disabled); /* Disabled background color */
+  border-color: var(--border-disabled); /* Border color on disabled state */
+  color: var(--text-secondary); /* Text color on disabled state */
+  cursor: not-allowed; /* Cursor to indicate the button is not clickable */
+  pointer-events: none; /* Prevents interaction with the button */
 }
 
 /* Inputs */

@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from './views/HomeView.vue';
 import BracketView from './views/bracket/BracketView.vue';
 import BracketCreate from './views/bracket/BracketCreate.vue';
+import BracketManage from './views/bracket/BracketManage.vue';
 import ScoreboardView from './views/scoreboard/ScoreboardView.vue';
 
 const routes = [
@@ -20,6 +21,11 @@ const routes = [
     path: '/bracket/create',
     name: 'bracket-create',
     component: BracketCreate,
+  },
+  {
+    path: '/bracket/manage',
+    name: 'bracket-manage',
+    component: BracketManage,
   },
   {
     path: '/scoreboard',

@@ -76,7 +76,8 @@ watch(route, () => {
 .app-page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Top Navbar */
@@ -209,6 +210,9 @@ watch(route, () => {
 /* Content */
 .content {
   flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
   padding: 16px;
 }
 </style>
