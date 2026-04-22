@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia';
 import type { Bracket } from '../interfaces/bracket';
 import { deleteBracket, saveBracket, getAllBrackets } from '../db/indexedDb';
+import {
+  setMatchWinner as applyWinner,
+  unsetMatchWinner as unsetWinner,
+} from '../engines/bracketEngine';
 
 export const useBracketStore = defineStore('bracket', {
   state: () => ({
@@ -52,6 +56,22 @@ export const useBracketStore = defineStore('bracket', {
       if (this.currentBracket?.id === id) {
         this.currentBracket = null;
       }
+    },
+
+    async setMatchWinner(matchId: string, teamId: string) {
+      if (!this.currentBracket) return;
+
+      this.currentBracket = applyWinner(this.currentBracket, matchId, teamId);
+
+      // await saveBracket(this.currentBracket);
+    },
+
+    async unsetMatchWinner(matchId: string) {
+      if (!this.currentBracket) return;
+
+      this.currentBracket = unsetWinner(this.currentBracket, matchId);
+
+      // await saveBracket(this.currentBracket);
     },
   },
 });

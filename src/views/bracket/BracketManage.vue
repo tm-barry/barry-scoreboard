@@ -27,6 +27,7 @@
         :class="isWinner(match, match.teamA) ? 'primary-btn' : 'secondary-btn'"
         :style="getTeamStyle()"
         :disabled="teamButtonDisabled(match.teamA)"
+        @click="selectWinner(match, match.teamA)"
       >
         <sup v-if="getTeamSeed(match.teamA)">
           {{ getTeamSeed(match.teamA) }}
@@ -39,6 +40,7 @@
         :class="isWinner(match, match.teamB) ? 'primary-btn' : 'secondary-btn'"
         :style="getTeamStyle()"
         :disabled="teamButtonDisabled(match.teamB)"
+        @click="selectWinner(match, match.teamB)"
       >
         <sup v-if="getTeamSeed(match.teamB)">
           {{ getTeamSeed(match.teamB) }}
@@ -129,6 +131,21 @@ function getTeamStyle(): StyleValue {
   return {
     height: `${TEAM_HEIGHT}px`,
   };
+}
+
+function selectWinner(match: Match, slot: Slot) {
+  if (!bracket.value) return;
+  if (slot.type !== 'team') return;
+
+  const isSameWinner =
+    match.winner?.type === 'team' && match.winner.id === slot.id;
+
+  if (isSameWinner) {
+    bracketStore.unsetMatchWinner(match.id);
+    return;
+  }
+
+  bracketStore.setMatchWinner(match.id, slot.id);
 }
 </script>
 

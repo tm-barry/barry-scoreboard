@@ -89,17 +89,46 @@ export function setMatchWinner(
   const match = findMatch(bracket, matchId);
   if (!match) return bracket;
 
-  const winner = getTeamSlotById(match, teamId);
+  let updated = bracket;
+  const existingWinner = match.winner;
+  if (existingWinner) {
+    updated = propagateUnsetWin(updated, match, existingWinner);
+  }
+
+  const newWinner = getTeamSlotById(match, teamId);
+  if (!newWinner) return bracket;
+
+  const updatedMatch: Match = {
+    ...match,
+    winner: newWinner,
+  };
+
+  updated = updateMatch(updated, updatedMatch);
+
+  return propagateWin(updated, updatedMatch, newWinner);
+}
+
+/**
+ * Unsets the winner of a match and removes them from proceeding matches
+ * @param bracket - Current bracket state
+ * @param matchId - ID of the match being updated
+ * @returns Updated bracket with winner unset and propagated
+ */
+export function unsetMatchWinner(bracket: Bracket, matchId: string): Bracket {
+  const match = findMatch(bracket, matchId);
+  if (!match) return bracket;
+
+  const winner = match.winner;
   if (!winner) return bracket;
 
   const updatedMatch: Match = {
     ...match,
-    winner,
+    winner: null,
   };
 
   const updated = updateMatch(bracket, updatedMatch);
 
-  return propagateWin(updated, updatedMatch, winner);
+  return propagateUnsetWin(updated, updatedMatch, winner);
 }
 
 /**
@@ -122,14 +151,7 @@ export function setMatchWinnerByScore(
 
   if (winner.type !== 'team') return bracket;
 
-  const updatedMatch: Match = {
-    ...match,
-    winner,
-  };
-
-  const updated = updateMatch(bracket, updatedMatch);
-
-  return propagateWin(updated, updatedMatch, winner);
+  return setMatchWinner(bracket, matchId, winner.id);
 }
 
 /**
@@ -166,7 +188,13 @@ export function resetMatch(bracket: Bracket, matchId: string): Bracket {
   const match = findMatch(bracket, matchId);
   if (!match) return bracket;
 
-  let updated = updateMatch(bracket, {
+  const winner = match.winner;
+  let updated = bracket;
+  if (winner) {
+    updated = propagateUnsetWin(updated, match, winner);
+  }
+
+  updated = updateMatch(updated, {
     ...match,
     scoreA: null,
     scoreB: null,
@@ -235,6 +263,33 @@ export function getTeamSlotById(match: Match, teamId: string): TeamSlot | null {
 /* -------------------------------------------------------
  * Helpers
  * ----------------------------------------------------- */
+
+function propagateUnsetWin(
+  bracket: Bracket,
+  match: Match,
+  winner: TeamSlot,
+): Bracket {
+  if (!match.nextMatchId || !match.nextSlot) return bracket;
+
+  const next = findMatch(bracket, match.nextMatchId);
+  if (!next) return bracket;
+
+  const updatedNext: Match = {
+    ...next,
+    teamA:
+      next.teamA.type === 'team' && next.teamA.id === winner.id
+        ? { type: 'pending' }
+        : next.teamA,
+    teamB:
+      next.teamB.type === 'team' && next.teamB.id === winner.id
+        ? { type: 'pending' }
+        : next.teamB,
+    winner: next.winner && next.winner.id === winner.id ? null : next.winner,
+  };
+
+  const updated = updateMatch(bracket, updatedNext);
+  return propagateUnsetWin(updated, updatedNext, winner);
+}
 
 function propagateWin(
   bracket: Bracket,
