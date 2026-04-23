@@ -2,7 +2,7 @@
   <div id="center">
     <div>
       <h1>Scoreboard View</h1>
-      <p>Edit <code>src/App.vue</code> and save to test <code>HMR</code></p>
+      <p>Coming soon...</p>
     </div>
     <button class="counter" @click="count++">Count is {{ count }}</button>
   </div>

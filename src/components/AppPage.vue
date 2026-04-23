@@ -43,14 +43,14 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="content">
+    <main ref="contentRef" class="content">
       <slot />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBracketStore } from '../stores/bracket';
 import { Menu, Monitor, Network, X } from '@lucide/vue';
@@ -58,6 +58,7 @@ import { Menu, Monitor, Network, X } from '@lucide/vue';
 const route = useRoute();
 const bracketStore = useBracketStore();
 
+const contentRef = ref<HTMLElement | null>(null);
 const isOpen = ref(false);
 
 function toggle() {
@@ -83,6 +84,13 @@ const subTitle = computed(() => {
   }
 });
 
+function scrollToBottom() {
+  contentRef.value?.scrollTo({
+    top: contentRef.value.scrollHeight,
+    behavior: 'smooth',
+  });
+}
+
 watch(isOpen, (open) => {
   document.body.style.overflow = open ? 'hidden' : '';
 });
@@ -90,6 +98,8 @@ watch(isOpen, (open) => {
 watch(route, () => {
   isOpen.value = false;
 });
+
+provide('scrollToBottom', scrollToBottom);
 </script>
 
 <style scoped>

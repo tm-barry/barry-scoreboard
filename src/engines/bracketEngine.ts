@@ -1,3 +1,4 @@
+import { createId } from '../utils/id';
 import type {
   Bracket,
   Match,
@@ -343,7 +344,7 @@ function createMatch(
   teamB: Slot = { type: 'pending' },
 ): Match {
   return {
-    id: crypto.randomUUID(),
+    id: createId(),
     round,
     position,
     teamA,

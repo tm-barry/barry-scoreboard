@@ -52,12 +52,15 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, ref } from 'vue';
+import { inject, onActivated, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { createId } from '../../utils/id';
 import { useBracketStore } from '../../stores/bracket';
 
 const bracketStore = useBracketStore();
 const router = useRouter();
+
+const scrollToBottom = inject<() => void>('scrollToBottom');
 
 // Components
 import { Network, Plus, Trash } from '@lucide/vue';
@@ -83,10 +86,7 @@ function addTeam() {
 
   // Scroll to bottom in case new item goes off screen
   requestAnimationFrame(() => {
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: 'smooth',
-    });
+    scrollToBottom?.();
   });
 }
 
@@ -107,7 +107,7 @@ async function generateBracket() {
     const name = t.name.trim() || `Team ${index + 1}`;
 
     return {
-      id: crypto.randomUUID(),
+      id: createId(),
       name,
       seed: t.seed ?? 1,
     };
@@ -115,7 +115,7 @@ async function generateBracket() {
 
   const now = Date.now();
   let bracket: Bracket = {
-    id: crypto.randomUUID(),
+    id: createId(),
     name: finalName,
     teams: cleanTeams,
     matches: [],
