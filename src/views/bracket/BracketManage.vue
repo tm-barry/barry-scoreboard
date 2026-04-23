@@ -1,58 +1,77 @@
 <template>
-  <div v-if="bracket" class="bracket-canvas" :style="canvasStyle">
-    <svg
-      class="connections"
-      :viewBox="`0 0 ${layout.width} ${layout.height}`"
-      :width="layout.width"
-      :height="layout.height"
-    >
-      <path
-        v-for="(e, i) in edges"
-        :key="i"
-        :d="e.d"
-        fill="none"
-        stroke="#666"
-        stroke-width="2"
-      />
-    </svg>
-
+  <div
+    v-if="bracket"
+    class="viewport"
+    @pointerdown="onPointerDown"
+    @pointermove="onPointerMove"
+    @pointerup="onPointerUp"
+    @pointercancel="onPointerUp"
+    @wheel="onWheel"
+  >
     <div
-      v-for="match in matches"
-      :key="match.id"
-      class="match"
-      :style="getMatchStyle(match.id)"
+      v-if="bracket"
+      class="bracket-canvas"
+      :class="{ interacting: isInteracting }"
+      :style="canvasTransform"
     >
-      <button
-        class="team"
-        :class="isWinner(match, match.teamA) ? 'primary-btn' : 'secondary-btn'"
-        :style="getTeamStyle()"
-        :disabled="teamButtonDisabled(match.teamA)"
-        @click="selectWinner(match, match.teamA)"
+      <svg
+        class="connections"
+        :viewBox="`0 0 ${layout.width} ${layout.height}`"
+        :width="layout.width"
+        :height="layout.height"
       >
-        <sup v-if="getTeamSeed(match.teamA)">
-          {{ getTeamSeed(match.teamA) }}
-        </sup>
-        {{ getTeamName(match.teamA) }}
-      </button>
+        <path
+          v-for="(e, i) in edges"
+          :key="i"
+          :d="e.d"
+          fill="none"
+          stroke="#666"
+          stroke-width="2"
+        />
+      </svg>
 
-      <button
-        class="team"
-        :class="isWinner(match, match.teamB) ? 'primary-btn' : 'secondary-btn'"
-        :style="getTeamStyle()"
-        :disabled="teamButtonDisabled(match.teamB)"
-        @click="selectWinner(match, match.teamB)"
+      <div
+        v-for="match in matches"
+        :key="match.id"
+        class="match"
+        :style="getMatchStyle(match.id)"
       >
-        <sup v-if="getTeamSeed(match.teamB)">
-          {{ getTeamSeed(match.teamB) }}
-        </sup>
-        {{ getTeamName(match.teamB) }}
-      </button>
+        <button
+          class="team"
+          :class="
+            isWinner(match, match.teamA) ? 'primary-btn' : 'secondary-btn'
+          "
+          :style="getTeamStyle()"
+          :disabled="teamButtonDisabled(match.teamA)"
+          @click="selectWinner(match, match.teamA)"
+        >
+          <sup v-if="getTeamSeed(match.teamA)">
+            {{ getTeamSeed(match.teamA) }}
+          </sup>
+          {{ getTeamName(match.teamA) }}
+        </button>
+
+        <button
+          class="team"
+          :class="
+            isWinner(match, match.teamB) ? 'primary-btn' : 'secondary-btn'
+          "
+          :style="getTeamStyle()"
+          :disabled="teamButtonDisabled(match.teamB)"
+          @click="selectWinner(match, match.teamB)"
+        >
+          <sup v-if="getTeamSeed(match.teamB)">
+            {{ getTeamSeed(match.teamB) }}
+          </sup>
+          {{ getTeamName(match.teamB) }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, type StyleValue } from 'vue';
+import { computed, onActivated, ref, type StyleValue } from 'vue';
 import { useBracketStore } from '../../stores/bracket';
 import type { Match, Slot } from '../../interfaces/bracket';
 import {
@@ -67,15 +86,24 @@ import { storeToRefs } from 'pinia';
 const bracketStore = useBracketStore();
 const { currentBracket: bracket } = storeToRefs(bracketStore);
 
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2.5;
+const scale = ref(1);
+const offsetX = ref(0);
+const offsetY = ref(0);
+const isInteracting = ref(false);
+const pointers = new Map<number, PointerEvent>();
+let lastPinchDistance = 0;
+let isPanning = false;
+let hasDragged = false;
+let lastPan = { x: 0, y: 0 };
+
 const matches = computed(() => bracket.value?.matches ?? []);
 
-const canvasStyle = computed(() => {
-  if (!layout.value) return {};
-  return {
-    width: `${layout.value.width}px`,
-    height: `${layout.value.height}px`,
-  };
-});
+const canvasTransform = computed(() => ({
+  transform: `translate(${offsetX.value}px, ${offsetY.value}px) scale(${scale.value})`,
+  transformOrigin: '0 0',
+}));
 
 const layout = computed(() => computeBracketLayout(matches.value));
 
@@ -134,6 +162,7 @@ function getTeamStyle(): StyleValue {
 }
 
 function selectWinner(match: Match, slot: Slot) {
+  if (hasDragged) return;
   if (!bracket.value) return;
   if (slot.type !== 'team') return;
 
@@ -147,13 +176,142 @@ function selectWinner(match: Match, slot: Slot) {
 
   bracketStore.setMatchWinner(match.id, slot.id);
 }
+
+function onPointerDown(e: PointerEvent) {
+  isInteracting.value = true;
+  pointers.set(e.pointerId, e);
+
+  (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+  hasDragged = false;
+
+  if (pointers.size === 1) {
+    isPanning = true;
+    lastPan = { x: e.clientX, y: e.clientY };
+  }
+
+  if (pointers.size === 2) {
+    isPanning = false;
+    lastPinchDistance = getPointerDistance();
+  }
+}
+
+function getPointerList() {
+  return Array.from(pointers.values());
+}
+
+function getPointerDistance() {
+  const [a, b] = getPointerList();
+  const dx = a.clientX - b.clientX;
+  const dy = a.clientY - b.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function getPointerMidpoint() {
+  const [a, b] = getPointerList();
+  return {
+    x: (a.clientX + b.clientX) / 2,
+    y: (a.clientY + b.clientY) / 2,
+  };
+}
+
+function onPointerMove(e: PointerEvent) {
+  if (!pointers.has(e.pointerId)) return;
+
+  pointers.set(e.pointerId, e);
+
+  // Pinch Zoom (2 pointers)
+  if (pointers.size === 2) {
+    const distance = getPointerDistance();
+    const midpoint = getPointerMidpoint();
+
+    if (lastPinchDistance) {
+      const delta = distance / lastPinchDistance;
+
+      applyZoom(scale.value * delta, midpoint.x, midpoint.y);
+    }
+
+    lastPinchDistance = distance;
+    return;
+  }
+
+  // Pan (1 pointer)
+  if (pointers.size === 1 && isPanning) {
+    const dx = e.clientX - lastPan.x;
+    const dy = e.clientY - lastPan.y;
+
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      hasDragged = true;
+    }
+
+    offsetX.value += dx;
+    offsetY.value += dy;
+
+    lastPan = { x: e.clientX, y: e.clientY };
+  }
+}
+
+function onPointerUp(e: PointerEvent) {
+  pointers.delete(e.pointerId);
+
+  if (pointers.size < 2) {
+    lastPinchDistance = 0;
+  }
+
+  if (pointers.size === 0) {
+    isPanning = false;
+    isInteracting.value = false;
+  }
+
+  (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+}
+
+function onWheel(e: WheelEvent) {
+  e.preventDefault();
+
+  const zoomIntensity = 0.002;
+  const delta = -e.deltaY * zoomIntensity;
+
+  const newScale = scale.value * (1 + delta);
+
+  applyZoom(newScale, e.clientX, e.clientY);
+}
+
+function applyZoom(newScale: number, cx: number, cy: number) {
+  const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
+
+  const factor = clamped / scale.value;
+
+  offsetX.value = cx - (cx - offsetX.value) * factor;
+  offsetY.value = cy - (cy - offsetY.value) * factor;
+
+  scale.value = clamped;
+}
+
+onActivated(() => {
+  scale.value = 1;
+  offsetX.value = 0;
+  offsetY.value = 0;
+});
 </script>
 
 <style scoped>
+.viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
 .bracket-canvas {
   position: relative;
+  transform-origin: 0 0;
   overflow: visible;
   margin: 16px;
+}
+
+.bracket-canvas.interacting button {
+  pointer-events: none;
 }
 
 .match {
