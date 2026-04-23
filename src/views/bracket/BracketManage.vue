@@ -8,12 +8,7 @@
     @pointercancel="onPointerUp"
     @wheel="onWheel"
   >
-    <div
-      v-if="bracket"
-      class="bracket-canvas"
-      :class="{ interacting: isInteracting }"
-      :style="canvasTransform"
-    >
+    <div v-if="bracket" class="bracket-canvas" :style="canvasTransform">
       <svg
         class="connections"
         :viewBox="`0 0 ${layout.width} ${layout.height}`"
@@ -88,10 +83,10 @@ const { currentBracket: bracket } = storeToRefs(bracketStore);
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2.5;
+const PAN_PADDING = 200;
 const scale = ref(1);
 const offsetX = ref(0);
 const offsetY = ref(0);
-const isInteracting = ref(false);
 const pointers = new Map<number, PointerEvent>();
 let lastPinchDistance = 0;
 let isPanning = false;
@@ -178,7 +173,6 @@ function selectWinner(match: Match, slot: Slot) {
 }
 
 function onPointerDown(e: PointerEvent) {
-  isInteracting.value = true;
   pointers.set(e.pointerId, e);
 
   (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -248,6 +242,7 @@ function onPointerMove(e: PointerEvent) {
     offsetY.value += dy;
 
     lastPan = { x: e.clientX, y: e.clientY };
+    clampPan();
   }
 }
 
@@ -260,7 +255,6 @@ function onPointerUp(e: PointerEvent) {
 
   if (pointers.size === 0) {
     isPanning = false;
-    isInteracting.value = false;
   }
 
   (e.target as HTMLElement).releasePointerCapture(e.pointerId);
@@ -286,12 +280,27 @@ function applyZoom(newScale: number, cx: number, cy: number) {
   offsetY.value = cy - (cy - offsetY.value) * factor;
 
   scale.value = clamped;
+  clampPan();
 }
 
-onActivated(() => {
+function clampPan() {
+  const maxX = PAN_PADDING;
+  const maxY = PAN_PADDING;
+  const minX = -layout.value.width * scale.value + PAN_PADDING;
+  const minY = -layout.value.height * scale.value + PAN_PADDING;
+
+  offsetX.value = Math.min(maxX, Math.max(minX, offsetX.value));
+  offsetY.value = Math.min(maxY, Math.max(minY, offsetY.value));
+}
+
+function resetView() {
   scale.value = 1;
   offsetX.value = 0;
   offsetY.value = 0;
+}
+
+onActivated(() => {
+  resetView();
 });
 </script>
 
