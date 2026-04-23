@@ -6,6 +6,7 @@ import BracketView from './views/bracket/BracketView.vue';
 import BracketCreate from './views/bracket/BracketCreate.vue';
 import BracketManage from './views/bracket/BracketManage.vue';
 import ScoreboardView from './views/scoreboard/ScoreboardView.vue';
+import ScoreboardPlay from './views/scoreboard/ScoreboardPlay.vue';
 
 const routes = [
   {
@@ -39,6 +40,11 @@ const routes = [
     path: '/scoreboard',
     name: 'scoreboard',
     component: ScoreboardView,
+  },
+  {
+    path: '/scoreboard/play',
+    name: 'scoreboard-play',
+    component: ScoreboardPlay,
   },
 ];
 

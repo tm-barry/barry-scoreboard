@@ -110,45 +110,63 @@ provide('scrollToBottom', scrollToBottom);
   overflow: hidden;
 }
 
-/* Top Navbar */
 .top-nav {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+
   height: 56px;
   padding: 0 16px;
+
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+
   position: sticky;
   top: 0;
   z-index: 1250;
-}
-
-.title {
-  margin: 0;
-  font-size: 18px;
-}
-
-.sub-title {
-  margin: 0;
-  font-size: 16px;
 }
 
 .title-link {
   display: flex;
   align-items: center;
   gap: 8px;
+
   text-decoration: none;
   color: inherit;
-}
 
-.title-link:hover {
-  opacity: 0.85;
+  flex: 1;
+  min-width: 0;
 }
 
 .logo {
   width: 32px;
   height: 32px;
+  flex: 0 0 auto;
+}
+
+.title,
+.sub-title {
+  margin: 0;
+  min-width: 0;
+  line-height: 1.1;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+
+  flex-shrink: 1;
+}
+
+.sub-title {
+  font-size: 14px;
+  opacity: 0.75;
+
+  flex-shrink: 1;
 }
 
 /* Sidebar */
