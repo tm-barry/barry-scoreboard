@@ -21,7 +21,11 @@ export const dbPromise = openDB(DB_NAME, DB_VERSION, {
 
 export async function saveBracket(bracket: Bracket) {
   const db = await dbPromise;
-  return db.put('brackets', toRaw(bracket));
+
+  const raw = toRaw(bracket);
+  const clean = structuredClone(JSON.parse(JSON.stringify(raw)));
+
+  await db.put('brackets', clean);
 }
 
 export async function getBracket(id: string): Promise<Bracket | undefined> {

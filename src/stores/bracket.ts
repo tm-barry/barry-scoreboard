@@ -63,7 +63,7 @@ export const useBracketStore = defineStore('bracket', {
 
       this.currentBracket = applyWinner(this.currentBracket, matchId, teamId);
 
-      // await saveBracket(this.currentBracket);
+      await saveBracket(this.currentBracket);
     },
 
     async unsetMatchWinner(matchId: string) {
@@ -71,7 +71,7 @@ export const useBracketStore = defineStore('bracket', {
 
       this.currentBracket = unsetWinner(this.currentBracket, matchId);
 
-      // await saveBracket(this.currentBracket);
+      await saveBracket(this.currentBracket);
     },
   },
 });
