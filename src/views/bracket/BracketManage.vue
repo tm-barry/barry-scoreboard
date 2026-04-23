@@ -1,6 +1,7 @@
 <template>
   <div
     v-if="bracket"
+    ref="viewportRef"
     class="viewport"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
@@ -83,10 +84,11 @@ const { currentBracket: bracket } = storeToRefs(bracketStore);
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2.5;
-const PAN_PADDING = 200;
+const PAN_PADDING = 50;
 const scale = ref(1);
 const offsetX = ref(0);
 const offsetY = ref(0);
+const viewportRef = ref<HTMLElement | null>(null);
 const pointers = new Map<number, PointerEvent>();
 let lastPinchDistance = 0;
 let isPanning = false;
@@ -284,13 +286,31 @@ function applyZoom(newScale: number, cx: number, cy: number) {
 }
 
 function clampPan() {
-  const maxX = PAN_PADDING;
-  const maxY = PAN_PADDING;
-  const minX = -layout.value.width * scale.value + PAN_PADDING;
-  const minY = -layout.value.height * scale.value + PAN_PADDING;
+  const viewportWidth = viewportRef.value?.clientWidth ?? window.innerWidth;
+  const viewportHeight = viewportRef.value?.clientHeight ?? window.innerHeight;
 
-  offsetX.value = Math.min(maxX, Math.max(minX, offsetX.value));
-  offsetY.value = Math.min(maxY, Math.max(minY, offsetY.value));
+  const padding = PAN_PADDING;
+
+  const worldWidth = layout.value.width * scale.value;
+  const worldHeight = layout.value.height * scale.value;
+
+  const minX = -worldWidth + padding;
+  const maxX = viewportWidth - padding;
+
+  const minY = -worldHeight + padding;
+  const maxY = viewportHeight - padding;
+
+  if (minX > maxX) {
+    offsetX.value = (minX + maxX) / 2;
+  } else {
+    offsetX.value = Math.min(maxX, Math.max(minX, offsetX.value));
+  }
+
+  if (minY > maxY) {
+    offsetY.value = (minY + maxY) / 2;
+  } else {
+    offsetY.value = Math.min(maxY, Math.max(minY, offsetY.value));
+  }
 }
 
 function resetView() {
