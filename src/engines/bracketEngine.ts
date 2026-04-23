@@ -6,6 +6,7 @@ import type {
   TeamSlot,
   Slot,
 } from '../interfaces/bracket';
+import { createScoreboard } from './scoreboardEngine';
 
 /* -------------------------------------------------------
  * PUBLIC API
@@ -145,10 +146,12 @@ export function setMatchWinnerByScore(
   const match = findMatch(bracket, matchId);
   if (!match) return bracket;
 
-  if (match.scoreA == null || match.scoreB == null) return bracket;
-  if (match.scoreA === match.scoreB) return bracket;
+  if (match.score?.scoreA == null || match.score?.scoreB == null)
+    return bracket;
+  if (match.score?.scoreA === match.score?.scoreB) return bracket;
 
-  const winner = match.scoreA > match.scoreB ? match.teamA : match.teamB;
+  const winner =
+    match.score?.scoreA > match.score?.scoreB ? match.teamA : match.teamB;
 
   if (winner.type !== 'team') return bracket;
 
@@ -172,10 +175,15 @@ export function setMatchScore(
   const match = findMatch(bracket, matchId);
   if (!match) return bracket;
 
+  const score = match.score ?? createScoreboard(bracket.sport);
+
   return updateMatch(bracket, {
     ...match,
-    scoreA,
-    scoreB,
+    score: {
+      ...score,
+      scoreA,
+      scoreB,
+    },
   });
 }
 
@@ -197,8 +205,7 @@ export function resetMatch(bracket: Bracket, matchId: string): Bracket {
 
   updated = updateMatch(updated, {
     ...match,
-    scoreA: null,
-    scoreB: null,
+    score: null,
     winner: null,
   });
 
@@ -349,8 +356,7 @@ function createMatch(
     position,
     teamA,
     teamB,
-    scoreA: null,
-    scoreB: null,
+    score: null,
     winner: null,
     nextMatchId: null,
     nextSlot: null,

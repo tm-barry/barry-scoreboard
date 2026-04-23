@@ -32,17 +32,17 @@ export const useBracketStore = defineStore('bracket', {
     async saveCurrent() {
       if (!this.currentBracket) return;
 
-      await saveBracket(this.currentBracket);
+      const updated = touch(this.currentBracket);
+      this.currentBracket = updated;
 
-      // keep local list in sync
-      const index = this.brackets.findIndex(
-        (b) => b.id === this.currentBracket!.id,
-      );
+      await saveBracket(updated);
+
+      const index = this.brackets.findIndex((b) => b.id === updated.id);
 
       if (index === -1) {
-        this.brackets.push(this.currentBracket);
+        this.brackets.push(updated);
       } else {
-        this.brackets[index] = this.currentBracket;
+        this.brackets[index] = updated;
       }
     },
 
@@ -61,17 +61,29 @@ export const useBracketStore = defineStore('bracket', {
     async setMatchWinner(matchId: string, teamId: string) {
       if (!this.currentBracket) return;
 
-      this.currentBracket = applyWinner(this.currentBracket, matchId, teamId);
+      let updated = applyWinner(this.currentBracket, matchId, teamId);
+      updated = touch(updated);
+      this.currentBracket = updated;
 
-      await saveBracket(this.currentBracket);
+      await saveBracket(updated);
     },
 
     async unsetMatchWinner(matchId: string) {
       if (!this.currentBracket) return;
 
-      this.currentBracket = unsetWinner(this.currentBracket, matchId);
+      let updated = unsetWinner(this.currentBracket, matchId);
+      updated = touch(updated);
 
-      await saveBracket(this.currentBracket);
+      this.currentBracket = updated;
+
+      await saveBracket(updated);
     },
   },
 });
+
+function touch(bracket: Bracket): Bracket {
+  return {
+    ...bracket,
+    updatedAt: Date.now(),
+  };
+}

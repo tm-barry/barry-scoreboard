@@ -8,9 +8,19 @@
       <input v-model="bracketName" type="text" placeholder="Enter a name..." />
     </section>
 
+    <section class="field">
+      <label>Sport</label>
+
+      <select v-model="sport">
+        <option value="generic">Generic</option>
+        <option value="baseball">Baseball</option>
+        <option value="basketball">Basketball</option>
+      </select>
+    </section>
+
     <!-- Teams -->
     <section class="teams">
-      <h3>Teams</h3>
+      <label>Teams</label>
 
       <div v-for="(team, index) in teams" :key="index" class="team-row">
         <div class="input-wrapper">
@@ -57,21 +67,23 @@ import { useRouter } from 'vue-router';
 import { createId } from '../../utils/id';
 import { useBracketStore } from '../../stores/bracket';
 
-const bracketStore = useBracketStore();
-const router = useRouter();
-
-const scrollToBottom = inject<() => void>('scrollToBottom');
-
 // Components
 import { Network, Plus, Trash } from '@lucide/vue';
 
 // Interfaces
 import type { Bracket, Team } from '../../interfaces/bracket';
+import type { SportType } from '../../interfaces/common';
 
 // Engines
 import { generateSingleEliminationMatches } from '../../engines/bracketEngine';
 
+const bracketStore = useBracketStore();
+const router = useRouter();
+
+const scrollToBottom = inject<() => void>('scrollToBottom');
+
 const bracketName = ref('');
+const sport = ref<SportType>('generic');
 const teams = ref<Team[]>([
   { id: '', name: '', seed: 1 },
   { id: '', name: '', seed: 2 },
@@ -117,6 +129,7 @@ async function generateBracket() {
   let bracket: Bracket = {
     id: createId(),
     name: finalName,
+    sport: sport.value,
     teams: cleanTeams,
     matches: [],
     createdAt: now,
@@ -131,6 +144,7 @@ async function generateBracket() {
 
 onActivated(() => {
   bracketName.value = '';
+  sport.value = 'generic';
   teams.value = [
     { id: '', name: '', seed: 1 },
     { id: '', name: '', seed: 2 },
@@ -210,12 +224,6 @@ onActivated(() => {
   display: flex;
   justify-content: flex-start;
   margin-top: 12px;
-}
-
-input {
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
 }
 
 .actions {

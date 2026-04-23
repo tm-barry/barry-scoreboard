@@ -34,7 +34,8 @@
           <h3>{{ b.name }}</h3>
           <small>
             {{ b.teams.length }} teams •
-            {{ new Date(b.updatedAt).toLocaleDateString() }}
+            {{ new Date(b.updatedAt).toLocaleString() }} •
+            {{ b.sport }}
           </small>
         </div>
 
@@ -56,7 +57,9 @@ import { Network, Plus, Trash } from '@lucide/vue';
 const router = useRouter();
 const store = useBracketStore();
 
-const brackets = computed(() => store.brackets);
+const brackets = computed(() =>
+  [...store.brackets].sort((a, b) => b.updatedAt - a.updatedAt),
+);
 
 onActivated(async () => {
   await store.loadBrackets();

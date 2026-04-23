@@ -1,65 +1,42 @@
 <template>
-  <div id="center">
-    <div>
-      <h1>Scoreboard View</h1>
-      <p>Coming soon...</p>
-    </div>
-    <button class="counter" @click="count++">Count is {{ count }}</button>
+  <div class="scoreboard-view">
+    <!-- Intro -->
+    <section class="intro">
+      <h2>
+        <Monitor :size="18" />
+        Scoreboard
+      </h2>
+      <p>View and update live match scores in real time.</p>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
-const count = ref(0);
+import { Monitor } from '@lucide/vue';
 </script>
 
 <style scoped>
-#center {
+.scoreboard-view {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Intro */
+.intro {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.intro h2 {
   display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+.intro p {
+  opacity: 0.8;
+  line-height: 1.5;
 }
 </style>
