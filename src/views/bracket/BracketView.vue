@@ -29,7 +29,6 @@
         class="card bracket-item"
         @click="openBracket(b.id)"
       >
-        <!-- click to open -->
         <div class="bracket-info">
           <h3>{{ b.name }}</h3>
           <small>
@@ -51,10 +50,12 @@
 <script setup lang="ts">
 import { onActivated, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useConfirm } from '../../composables/useConfirm';
 import { useBracketStore } from '../../stores/bracket';
 import { Network, Plus, Trash } from '@lucide/vue';
 
 const router = useRouter();
+const { confirm } = useConfirm();
 const store = useBracketStore();
 
 const brackets = computed(() =>
@@ -78,9 +79,13 @@ function openBracket(id: string) {
 }
 
 async function confirmDelete(id: string) {
-  const ok = window.confirm(
-    'Are you sure you want to delete this bracket? This cannot be undone.',
-  );
+  const ok = await confirm({
+    title: 'Delete Bracket',
+    message:
+      'Are you sure you want to delete this bracket? This cannot be undone.',
+    confirmText: 'Delete',
+    danger: true,
+  });
 
   if (!ok) return;
 

@@ -1,5 +1,4 @@
 import type { SportType } from './common';
-import type { Scoreboard } from './scoreboard';
 
 export interface Bracket {
   id: string;
@@ -38,7 +37,8 @@ export interface Match {
   position: number;
   teamA: Slot;
   teamB: Slot;
-  score: Scoreboard | null;
+  scoreA: number | null;
+  scoreB: number | null;
   winner: TeamSlot | null;
   nextMatchId: string | null;
   nextSlot: 'A' | 'B' | null;

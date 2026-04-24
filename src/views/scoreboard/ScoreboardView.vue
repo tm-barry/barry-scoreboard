@@ -11,37 +11,51 @@
 
     <!-- Cards -->
     <section class="cards">
-      <router-link
-        :to="{ name: 'scoreboard-play', query: { sport: 'generic' } }"
-        class="card"
+      <div
+        :to="{ name: 'scoreboard-play' }"
+        class="card scoreboard-item"
+        @click="createScoreboard('generic')"
       >
         <h3><Trophy />Generic</h3>
         <p>Simple scoreboard with basic scoring.</p>
-      </router-link>
+      </div>
 
-      <router-link
-        :to="{ name: 'scoreboard-play', query: { sport: 'basketball' } }"
-        class="card"
-      >
-        <h3><Basketball />Basketball</h3>
-        <p>Fouls, shot clock, possession tracking.</p>
-      </router-link>
-
-      <router-link
-        :to="{ name: 'scoreboard-play', query: { sport: 'baseball' } }"
-        class="card"
+      <div
+        :to="{ name: 'scoreboard-play' }"
+        class="card scoreboard-item"
+        @click="createScoreboard('baseball')"
       >
         <h3><Baseball />Baseball</h3>
         <p>Runs, balls, strikes, outs tracking.</p>
-      </router-link>
+      </div>
+
+      <div
+        :to="{ name: 'scoreboard-play' }"
+        class="card scoreboard-item"
+        @click="createScoreboard('basketball')"
+      >
+        <h3><Basketball />Basketball</h3>
+        <p>Fouls, shot clock, possession tracking.</p>
+      </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
+import { useScoreboardStore } from '../../stores/scoreboard';
 import { Monitor, Trophy } from '@lucide/vue';
 import Baseball from '../../components/icons/Baseball.vue';
 import Basketball from '../../components/icons/Basketball.vue';
+import type { SportType } from '../../interfaces/common';
+
+const router = useRouter();
+const scoreboardStore = useScoreboardStore();
+
+async function createScoreboard(sport: SportType) {
+  scoreboardStore.setNewScoreboard(sport);
+  router.push({ name: 'scoreboard-play' });
+}
 </script>
 
 <style scoped>
@@ -81,5 +95,9 @@ import Basketball from '../../components/icons/Basketball.vue';
   justify-content: start;
   gap: 8px;
   margin: 0;
+}
+
+.scoreboard-item {
+  cursor: pointer;
 }
 </style>

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useBracketStore } from './stores/bracket';
+import { useScoreboardStore } from './stores/scoreboard';
 
 import HomeView from './views/HomeView.vue';
 import BracketView from './views/bracket/BracketView.vue';
@@ -45,6 +46,13 @@ const routes = [
     path: '/scoreboard/play',
     name: 'scoreboard-play',
     component: ScoreboardPlay,
+    beforeEnter: () => {
+      const store = useScoreboardStore();
+
+      if (!store.scoreboard) {
+        return { name: 'scoreboard' };
+      }
+    },
   },
 ];
 
