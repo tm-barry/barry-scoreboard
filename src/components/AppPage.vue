@@ -130,11 +130,8 @@ provide('scrollToBottom', scrollToBottom);
   display: flex;
   align-items: center;
   gap: 8px;
-
   text-decoration: none;
   color: inherit;
-
-  flex: 1;
   min-width: 0;
 }
 
