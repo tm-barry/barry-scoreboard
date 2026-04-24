@@ -171,6 +171,7 @@ p {
 
 /* Buttons */
 .icon-btn {
+  color: var(--text-h);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -9,6 +9,7 @@
     @pointercancel="onPointerUp"
     @wheel="onWheel"
   >
+    <!-- Bracket -->
     <div v-if="bracket" class="bracket-canvas" :style="canvasTransform">
       <svg
         class="connections"
@@ -63,11 +64,22 @@
         </button>
       </div>
     </div>
+    <!-- Viewport Controls -->
+    <div class="viewport-controls">
+      <button class="icon-btn" @click="resetView">
+        <RotateCcw />
+      </button>
+
+      <button class="icon-btn" @click="fitToView">
+        <Frame />
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onActivated, ref, type StyleValue } from 'vue';
+import { Frame, RotateCcw } from '@lucide/vue';
 import { useBracketStore } from '../../stores/bracket';
 import type { Match, Slot } from '../../interfaces/bracket';
 import {
@@ -85,6 +97,7 @@ const { currentBracket: bracket } = storeToRefs(bracketStore);
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2.5;
 const PAN_PADDING = 50;
+const FIT_SAFE_PAD = 16;
 const scale = ref(1);
 const offsetX = ref(0);
 const offsetY = ref(0);
@@ -274,7 +287,9 @@ function onWheel(e: WheelEvent) {
 }
 
 function applyZoom(newScale: number, cx: number, cy: number) {
-  const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
+  let clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
+  // round to 3 decimals
+  clamped = Math.round(clamped * 1000) / 1000;
 
   const factor = clamped / scale.value;
 
@@ -313,6 +328,30 @@ function clampPan() {
   }
 }
 
+function fitToView() {
+  const contentW = layout.value.width + FIT_SAFE_PAD * 2;
+  const contentH = layout.value.height + FIT_SAFE_PAD * 2;
+  const viewportW = viewportRef.value?.clientWidth ?? 0;
+  const viewportH = viewportRef.value?.clientHeight ?? 0;
+
+  let scaleX = viewportW / contentW;
+  let scaleY = viewportH / contentH;
+  let newScale = Math.min(scaleX, scaleY);
+
+  newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newScale));
+
+  scale.value = newScale;
+
+  const scaledW = contentW * newScale;
+  const scaledH = contentH * newScale;
+
+  offsetX.value = scaledW <= viewportW ? (viewportW - scaledW) / 2 : 0;
+
+  offsetY.value = scaledH <= viewportH ? (viewportH - scaledH) / 2 : 0;
+
+  clampPan();
+}
+
 function resetView() {
   scale.value = 1;
   offsetX.value = 0;
@@ -320,23 +359,34 @@ function resetView() {
 }
 
 onActivated(() => {
-  resetView();
+  fitToView();
 });
 </script>
 
 <style scoped>
 .viewport {
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   touch-action: none;
 }
 
+.viewport-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  display: flex;
+  gap: 16px;
+
+  z-index: 1000;
+}
+
 .bracket-canvas {
   position: relative;
   transform-origin: 0 0;
   overflow: visible;
-  margin: 16px;
 }
 
 .bracket-canvas.interacting button {
