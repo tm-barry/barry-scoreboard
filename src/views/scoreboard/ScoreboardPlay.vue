@@ -280,6 +280,7 @@ onDeactivated(() => {
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
+  cursor: pointer;
 }
 
 .name {
