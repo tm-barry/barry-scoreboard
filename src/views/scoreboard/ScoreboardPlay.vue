@@ -15,8 +15,16 @@
               {{ scoreboard?.segment ?? 0 }}
             </div>
             <div class="segment-controls">
-              <IconButton name="minus" @click.stop="adjustSegment(-1)" />
-              <IconButton name="plus" @click.stop="adjustSegment()" />
+              <IconButton
+                name="minus"
+                :icon-size="36"
+                @click.stop="adjustSegment(-1)"
+              />
+              <IconButton
+                name="plus"
+                :icon-size="36"
+                @click.stop="adjustSegment()"
+              />
             </div>
           </div>
         </div>
@@ -99,12 +107,12 @@
                 <div class="foul-controls">
                   <IconButton
                     name="minus"
-                    :size="24"
+                    :icon-size="36"
                     @click.stop="adjustTeamFouls('A', -1)"
                   />
                   <IconButton
                     name="plus"
-                    :size="24"
+                    :icon-size="36"
                     @click.stop="adjustTeamFouls('A')"
                   />
                 </div>
@@ -140,12 +148,12 @@
                 <div class="foul-controls">
                   <IconButton
                     name="minus"
-                    :size="24"
+                    :icon-size="36"
                     @click.stop="adjustTeamFouls('B', -1)"
                   />
                   <IconButton
                     name="plus"
-                    :size="24"
+                    :icon-size="36"
                     @click.stop="adjustTeamFouls('B')"
                   />
                 </div>
@@ -323,7 +331,7 @@ onDeactivated(() => {
   align-items: center;
   justify-content: center;
 
-  gap: 2px;
+  gap: 8px;
 }
 
 .segment-name {
@@ -335,6 +343,7 @@ onDeactivated(() => {
   font-size: 72px;
   font-weight: 600;
   line-height: 1;
+  cursor: pointer;
 }
 
 .segment-controls {
@@ -481,6 +490,7 @@ onDeactivated(() => {
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
 }
 
 /* foul +/- buttons */
