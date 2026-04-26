@@ -53,22 +53,60 @@ export const useScoreboardStore = defineStore('scoreboard', {
       }
     },
 
-    incrementTeamScore(team: 'A' | 'B', incrementBy: number = 1) {
+    adjustTeamScore(team: 'A' | 'B', delta: number = 1) {
       if (!this.scoreboard) return;
 
-      const score =
+      const current =
         (team === 'A' ? this.scoreboard.scoreA : this.scoreboard.scoreB) ?? 0;
 
-      this.setTeamScore(team, (score ?? 0) + incrementBy);
+      const next = Math.max(0, current + delta);
+
+      this.setTeamScore(team, next);
     },
 
-    decrementTeamScore(team: 'A' | 'B', incrementBy: number = 1) {
+    setSegment(value: number) {
       if (!this.scoreboard) return;
 
-      const score =
-        (team === 'A' ? this.scoreboard.scoreA : this.scoreboard.scoreB) ?? 0;
+      this.scoreboard.segment = value;
+    },
 
-      if (score > 0) this.setTeamScore(team, (score ?? 0) - incrementBy);
+    adjustSegment(delta: number = 1) {
+      if (!this.scoreboard) return;
+
+      const current = this.scoreboard.segment;
+
+      const next = Math.max(1, current + delta);
+
+      this.setSegment(next);
+    },
+
+    setPossession(team: 'A' | 'B') {
+      if (this.scoreboard?.type !== 'basketball') return;
+
+      this.scoreboard.possession = team;
+    },
+
+    setTeamFouls(team: 'A' | 'B', fouls: number) {
+      if (this.scoreboard?.type !== 'basketball') return;
+
+      switch (team) {
+        case 'A':
+          this.scoreboard.foulsA = fouls;
+          break;
+        case 'B':
+          this.scoreboard.foulsB = fouls;
+      }
+    },
+
+    adjustTeamFouls(team: 'A' | 'B', delta: number) {
+      if (this.scoreboard?.type !== 'basketball') return;
+
+      const current =
+        team === 'A' ? this.scoreboard.foulsA : this.scoreboard.foulsB;
+
+      const next = Math.max(0, current + delta);
+
+      this.setTeamFouls(team, next);
     },
   },
 });

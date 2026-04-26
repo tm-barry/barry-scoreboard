@@ -2,9 +2,7 @@
   <div class="app-page">
     <!-- Top Navbar -->
     <header class="top-nav">
-      <button class="icon-btn" @click="toggle">
-        <Menu :size="20" />
-      </button>
+      <IconButton name="menu" @click="toggle" />
       <router-link to="/" class="title-link">
         <img src="../assets/barryscoreboard.svg" alt="Logo" class="logo" />
         <h2 class="title">
@@ -24,18 +22,21 @@
       <div class="sidebar-header">
         <span>Menu</span>
 
-        <button class="icon-btn close-btn" @click="close">
-          <X :size="20" />
-        </button>
+        <IconButton
+          name="x"
+          :button-padding="0"
+          class="close-btn"
+          @click="close"
+        />
       </div>
       <nav class="nav-links">
         <slot name="nav">
           <router-link to="/bracket">
-            <Network :size="18" class="rotate-90" />
+            <Icon name="network" :size="18" class="rotate-90" />
             <span>Bracket</span>
           </router-link>
           <router-link to="/scoreboard">
-            <Monitor :size="18" />
+            <Icon name="monitor" :size="18" />
             <span>Scoreboard</span>
           </router-link>
         </slot>
@@ -53,7 +54,6 @@
 import { computed, provide, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBracketStore } from '../stores/bracket';
-import { Menu, Monitor, Network, X } from '@lucide/vue';
 
 const route = useRoute();
 const bracketStore = useBracketStore();

@@ -1,5 +1,5 @@
 <template>
-  <div ref="viewportRef" class="viewport">
+  <div ref="viewportRef" class="viewport no-select">
     <div ref="scaleWrapper" class="scale-wrapper">
       <div class="canvas">
         <!-- Timer -->
@@ -14,6 +14,10 @@
             <div class="segment-value">
               {{ scoreboard?.segment ?? 0 }}
             </div>
+            <div class="segment-controls">
+              <IconButton name="minus" @click.stop="adjustSegment(-1)" />
+              <IconButton name="plus" @click.stop="adjustSegment()" />
+            </div>
           </div>
         </div>
 
@@ -22,19 +26,25 @@
           <!-- LEFT HALF -->
           <div class="side left">
             <div>
-              <div class="team no-select" @click="incrementTeamScore('A')">
+              <div class="team">
                 <div class="name">
                   <span class="name-text">{{ teamAName }}</span>
                 </div>
-                <div class="score">{{ scoreboard?.scoreA ?? 0 }}</div>
+                <div class="score" @click="adjustTeamScore('A')">
+                  {{ scoreboard?.scoreA ?? 0 }}
+                </div>
               </div>
               <div class="score-controls">
-                <button class="icon-btn" @click.stop="decrementTeamScore('A')">
-                  <Minus :size="36" />
-                </button>
-                <button class="icon-btn" @click.stop="incrementTeamScore('A')">
-                  <Plus :size="36" />
-                </button>
+                <IconButton
+                  name="minus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamScore('A', -1)"
+                />
+                <IconButton
+                  name="plus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamScore('A')"
+                />
               </div>
             </div>
           </div>
@@ -45,19 +55,25 @@
           <!-- RIGHT HALF -->
           <div class="side right">
             <div>
-              <div class="team no-select" @click="incrementTeamScore('B')">
+              <div class="team">
                 <div class="name">
                   <span class="name-text">{{ teamBName }}</span>
                 </div>
-                <div class="score">{{ scoreboard?.scoreB ?? 0 }}</div>
+                <div class="score" @click="adjustTeamScore('B')">
+                  {{ scoreboard?.scoreB ?? 0 }}
+                </div>
               </div>
               <div class="score-controls">
-                <button class="icon-btn" @click.stop="decrementTeamScore('B')">
-                  <Minus :size="36" />
-                </button>
-                <button class="icon-btn" @click.stop="incrementTeamScore('B')">
-                  <Plus :size="36" />
-                </button>
+                <IconButton
+                  name="minus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamScore('B', -1)"
+                />
+                <IconButton
+                  name="plus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamScore('B')"
+                />
               </div>
             </div>
           </div>
@@ -72,9 +88,69 @@
           </div>
 
           <div v-if="basketballScoreboard" class="hud basketball">
-            <div>Fouls A: {{ basketballScoreboard.foulsA }}</div>
-            <div>Fouls B: {{ basketballScoreboard.foulsB }}</div>
-            <div>Possession: {{ basketballScoreboard.possession ?? '-' }}</div>
+            <!-- LEFT (Team A) -->
+            <div class="hud-side left">
+              <div class="foul-block">
+                <div class="label">Fouls</div>
+                <div class="value">
+                  {{ basketballScoreboard.foulsA }}
+                </div>
+
+                <div class="foul-controls">
+                  <IconButton
+                    name="minus"
+                    :size="24"
+                    @click.stop="adjustTeamFouls('A', -1)"
+                  />
+                  <IconButton
+                    name="plus"
+                    :size="24"
+                    @click.stop="adjustTeamFouls('A')"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- CENTER (Possession) -->
+            <div class="hud-center">
+              <Icon
+                name="arrowBigLeft"
+                class="arrow"
+                :class="{ active: basketballScoreboard.possession === 'A' }"
+                :size="64"
+                @click="setPossession('A')"
+              />
+              <Icon
+                name="arrowBigRight"
+                class="arrow"
+                :class="{ active: basketballScoreboard.possession === 'B' }"
+                :size="64"
+                @click="setPossession('B')"
+              />
+            </div>
+
+            <!-- RIGHT (Team B) -->
+            <div class="hud-side right">
+              <div class="foul-block">
+                <div class="label">Fouls</div>
+                <div class="value">
+                  {{ basketballScoreboard.foulsB }}
+                </div>
+
+                <div class="foul-controls">
+                  <IconButton
+                    name="minus"
+                    :size="24"
+                    @click.stop="adjustTeamFouls('B', -1)"
+                  />
+                  <IconButton
+                    name="plus"
+                    :size="24"
+                    @click.stop="adjustTeamFouls('B')"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -86,11 +162,11 @@
 import { computed, ref, onActivated, onDeactivated } from 'vue';
 import { useScoreboardStore } from '../../stores/scoreboard';
 import { storeToRefs } from 'pinia';
-import { Plus, Minus } from '@lucide/vue';
 import type {
   BaseballScoreboard,
   BasketballScoreboard,
 } from '../../interfaces/scoreboard';
+import Icon from '../../components/icons/Icon.vue';
 
 const BASE_W = 1280;
 const BASE_H = 720;
@@ -122,8 +198,8 @@ const segmentName = computed(() => {
   }
 });
 
-const teamAName = computed(() => 'Team A');
-const teamBName = computed(() => 'Team B');
+const teamAName = computed(() => 'Chicago Bulls');
+const teamBName = computed(() => 'Golden State Warriors');
 
 const formattedTime = computed(() => {
   const t = scoreboard.value?.timer?.timeRemaining ?? 0; // seconds (can be float)
@@ -142,12 +218,25 @@ const formattedTime = computed(() => {
   return base;
 });
 
-async function incrementTeamScore(team: 'A' | 'B') {
-  scoreboardStore.incrementTeamScore(team);
+async function adjustSegment(delta: number = 1) {
+  scoreboardStore.adjustSegment(delta);
+  // TODO - save
 }
 
-async function decrementTeamScore(team: 'A' | 'B') {
-  scoreboardStore.decrementTeamScore(team);
+async function adjustTeamScore(team: 'A' | 'B', delta: number = 1) {
+  scoreboardStore.adjustTeamScore(team, delta);
+  // TODO - save
+}
+
+/* ---------- Basketball Methods ---------- */
+async function setPossession(team: 'A' | 'B') {
+  scoreboardStore.setPossession(team);
+  // TODO - save
+}
+
+async function adjustTeamFouls(team: 'A' | 'B', delta: number = 1) {
+  scoreboardStore.adjustTeamFouls(team, delta);
+  // TODO - save
 }
 
 let ro: ResizeObserver | null = null;
@@ -202,10 +291,9 @@ onDeactivated(() => {
 .canvas {
   width: 100%;
   height: 100%;
-
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr auto;
-
   box-sizing: border-box;
 }
 
@@ -244,9 +332,19 @@ onDeactivated(() => {
 }
 
 .segment-value {
-  font-size: 54px;
+  font-size: 72px;
   font-weight: 600;
   line-height: 1;
+}
+
+.segment-controls {
+  padding-top: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  opacity: 0.35;
 }
 
 .main {
@@ -274,17 +372,16 @@ onDeactivated(() => {
 
 /* Shared team block */
 .team {
-  width: 600px;
+  width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-  cursor: pointer;
 }
 
 .name {
-  width: 500px;
+  width: 400px;
   min-height: 90px;
   display: flex;
   align-items: center;
@@ -299,24 +396,25 @@ onDeactivated(() => {
   -webkit-box-orient: vertical;
   text-align: center;
   overflow: hidden;
-  font-size: 28px;
+  font-size: 32px;
+  line-height: 1.3;
 }
 
 .score {
-  font-size: 128px;
+  font-size: 160px;
   font-weight: 700;
   line-height: 1;
   text-align: center;
   font-variant-numeric: tabular-nums;
-
-  min-height: 140px; /* locks vertical space */
+  min-height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
 .score-controls {
-  padding-top: 40px;
+  padding-top: 30px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -335,12 +433,17 @@ onDeactivated(() => {
 
 /* OVERLAY */
 .overlay {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+
   display: flex;
   justify-content: center;
   gap: 20px;
 
-  padding-top: 6px;
   opacity: 0.8;
+  pointer-events: none;
 }
 
 .hud {
@@ -348,5 +451,80 @@ onDeactivated(() => {
   gap: 12px;
   font-size: 14px;
   opacity: 0.75;
+}
+
+/* Basketball */
+.hud.basketball {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 600px;
+}
+
+/* =========================
+   FOUL BLOCK (LEFT / RIGHT)
+========================= */
+.hud.basketball .foul-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.hud.basketball .foul-block .label {
+  font-size: 24px;
+}
+
+.hud.basketball .foul-block .value {
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* foul +/- buttons */
+.hud.basketball .foul-controls {
+  display: flex;
+  gap: 10px;
+  opacity: 0.4;
+}
+
+/* =========================
+   CENTER (POSSESSION)
+========================= */
+.hud.basketball .hud-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  pointer-events: auto;
+}
+
+/* arrows */
+.hud.basketball .arrow {
+  opacity: 0.2;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.hud.basketball .arrow.active {
+  opacity: 1;
+}
+
+/* optional subtle emphasis */
+.hud.basketball .arrow:hover {
+  transform: scale(1.05);
+}
+
+/* =========================
+   SAFETY: SIDE CONTAINERS
+========================= */
+.hud.basketball .hud-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 </style>

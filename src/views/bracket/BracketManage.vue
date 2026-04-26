@@ -66,20 +66,14 @@
     </div>
     <!-- Viewport Controls -->
     <div class="viewport-controls">
-      <button class="icon-btn" @click="resetView">
-        <RotateCcw />
-      </button>
-
-      <button class="icon-btn" @click="fitToView">
-        <Frame />
-      </button>
+      <IconButton name="rotateCcw" @click="resetView" />
+      <IconButton name="frame" @click="fitToView" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onActivated, ref, type StyleValue } from 'vue';
-import { Frame, RotateCcw } from '@lucide/vue';
 import { useBracketStore } from '../../stores/bracket';
 import type { Match, Slot } from '../../interfaces/bracket';
 import {

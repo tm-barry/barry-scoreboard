@@ -3,7 +3,7 @@
     <!-- Intro -->
     <section class="intro">
       <h2>
-        <Monitor :size="18" />
+        <Icon name="monitor" :size="18" />
         Scoreboard
       </h2>
       <p>Select a sport to start a scoreboard session.</p>
@@ -16,7 +16,7 @@
         class="card scoreboard-item"
         @click="createScoreboard('generic')"
       >
-        <h3><Trophy />Generic</h3>
+        <h3><Icon name="trophy" />Generic</h3>
         <p>Simple scoreboard with basic scoring.</p>
       </div>
 
@@ -25,7 +25,7 @@
         class="card scoreboard-item"
         @click="createScoreboard('baseball')"
       >
-        <h3><Baseball />Baseball</h3>
+        <h3><Icon name="baseball" />Baseball</h3>
         <p>Runs, balls, strikes, outs tracking.</p>
       </div>
 
@@ -34,7 +34,7 @@
         class="card scoreboard-item"
         @click="createScoreboard('basketball')"
       >
-        <h3><Basketball />Basketball</h3>
+        <h3><Icon name="basketball" />Basketball</h3>
         <p>Fouls, shot clock, possession tracking.</p>
       </div>
     </section>
@@ -44,9 +44,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useScoreboardStore } from '../../stores/scoreboard';
-import { Monitor, Trophy } from '@lucide/vue';
-import Baseball from '../../components/icons/Baseball.vue';
-import Basketball from '../../components/icons/Basketball.vue';
 import type { SportType } from '../../interfaces/common';
 
 const router = useRouter();

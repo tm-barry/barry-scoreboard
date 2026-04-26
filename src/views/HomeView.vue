@@ -13,21 +13,17 @@
     <!-- Navigation cards -->
     <section class="cards">
       <router-link to="/bracket" class="card">
-        <h2><Network :size="18" class="rotate-90" />Bracket</h2>
+        <h2><Icon name="network" :size="18" class="rotate-90" />Bracket</h2>
         <p>Create, manage, save, and load tournament brackets.</p>
       </router-link>
 
       <router-link to="/scoreboard" class="card">
-        <h2><Monitor :size="18" />Scoreboard</h2>
+        <h2><Icon name="monitor" :size="18" />Scoreboard</h2>
         <p>View and update live match scores in real time.</p>
       </router-link>
     </section>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Monitor, Network } from '@lucide/vue';
-</script>
 
 <style scoped>
 .home {

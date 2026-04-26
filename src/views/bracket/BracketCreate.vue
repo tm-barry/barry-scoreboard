@@ -35,19 +35,17 @@
           placeholder="Seed"
         />
 
-        <button
-          type="button"
-          class="danger icon-btn"
+        <IconButton
+          name="trash"
+          class="danger trash-btn"
           @click="removeTeam(index)"
-        >
-          <Trash />
-        </button>
+        />
       </div>
 
       <!-- Add Team -->
       <div class="team-actions">
         <button type="button" class="secondary-btn flex-btn" @click="addTeam">
-          <Plus :size="18" /> Add Team
+          <Icon name="plus" :size="18" /> Add Team
         </button>
       </div>
     </section>
@@ -55,7 +53,7 @@
     <!-- Generate -->
     <section class="actions">
       <button class="primary-btn flex-btn" @click="generateBracket">
-        <Network :size="18" class="rotate-90" />Generate Bracket
+        <Icon name="network" :size="18" class="rotate-90" />Generate Bracket
       </button>
     </section>
   </div>
@@ -66,9 +64,6 @@ import { inject, onActivated, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createId } from '../../utils/id';
 import { useBracketStore } from '../../stores/bracket';
-
-// Components
-import { Network, Plus, Trash } from '@lucide/vue';
 
 // Interfaces
 import type { Bracket, Team } from '../../interfaces/bracket';
@@ -215,7 +210,7 @@ onActivated(() => {
   text-align: center;
 }
 
-.icon-btn {
+.trash-btn {
   flex: 0 0 auto;
   margin-left: auto;
 }

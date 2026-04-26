@@ -3,7 +3,7 @@
     <!-- Intro -->
     <section class="intro">
       <h2>
-        <Network :size="18" class="rotate-90" />
+        <Icon name="network" :size="18" class="rotate-90" />
         Bracket
       </h2>
       <p>Create, manage, save, and load tournament brackets.</p>
@@ -12,7 +12,7 @@
     <!-- Actions -->
     <section class="actions">
       <button class="primary-btn flex-btn" @click="createBracket">
-        <Plus />
+        <Icon name="plus" />
         Create New
       </button>
     </section>
@@ -39,9 +39,11 @@
         </div>
 
         <!-- delete -->
-        <button class="icon-btn danger" @click.stop="confirmDelete(b.id)">
-          <Trash />
-        </button>
+        <IconButton
+          name="trash"
+          class="danger trash-btn"
+          @click.stop="confirmDelete(b.id)"
+        />
       </div>
     </section>
   </div>
@@ -52,7 +54,6 @@ import { onActivated, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from '../../composables/useConfirm';
 import { useBracketStore } from '../../stores/bracket';
-import { Network, Plus, Trash } from '@lucide/vue';
 
 const router = useRouter();
 const { confirm } = useConfirm();
@@ -144,7 +145,7 @@ async function confirmDelete(id: string) {
   opacity: 0.7;
 }
 
-.icon-btn {
+.trash-btn {
   flex: 0 0 auto;
   margin-left: auto;
 }
