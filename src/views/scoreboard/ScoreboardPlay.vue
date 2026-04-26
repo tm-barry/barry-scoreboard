@@ -11,7 +11,7 @@
           <!-- Segment moved BELOW timer -->
           <div class="segment">
             <div class="segment-name">{{ segmentName }}</div>
-            <div class="segment-value">
+            <div class="segment-value" @click="adjustSegment()">
               {{ scoreboard?.segment ?? 0 }}
             </div>
             <div class="segment-controls">
@@ -92,7 +92,7 @@
             <div class="hud-side left">
               <div class="foul-block">
                 <div class="label">Fouls</div>
-                <div class="value">
+                <div class="value" @click="adjustTeamFouls('A')">
                   {{ basketballScoreboard.foulsA }}
                 </div>
 
@@ -133,7 +133,7 @@
             <div class="hud-side right">
               <div class="foul-block">
                 <div class="label">Fouls</div>
-                <div class="value">
+                <div class="value" @click="adjustTeamFouls('B')">
                   {{ basketballScoreboard.foulsB }}
                 </div>
 
