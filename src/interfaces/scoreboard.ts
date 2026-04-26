@@ -16,7 +16,6 @@ interface ScoreboardTimer {
 
 interface BaseScoreboard<T extends SportType> {
   type: T;
-  segmentsTotal: number;
   segment: number;
   timer?: ScoreboardTimer;
   teamA: string | null;

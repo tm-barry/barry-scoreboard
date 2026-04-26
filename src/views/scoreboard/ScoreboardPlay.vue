@@ -1,11 +1,27 @@
 <template>
   <div ref="viewportRef" class="viewport no-select">
     <div ref="scaleWrapper" class="scale-wrapper">
-      <div class="canvas">
+      <div class="canvas" :class="{ editing: isEditing }">
+        <!-- Edit -->
+        <div class="edit-button">
+          <IconButton
+            :name="isEditing ? 'check' : 'pencil'"
+            :icon-size="36"
+            @click="toggleEdit()"
+          />
+        </div>
+
         <!-- Timer -->
         <div class="top-bar">
-          <div v-if="!baseballScoreboard" class="timer">
-            {{ formattedTime }}
+          <div v-if="!baseballScoreboard" class="timer" @click="onTimerClicked">
+            <TimeInput
+              v-if="isEditing"
+              v-model="timerInput"
+              class="timer-input"
+            />
+            <span v-else>
+              {{ formattedTime }}
+            </span>
           </div>
 
           <!-- Segment moved BELOW timer -->
@@ -89,6 +105,7 @@
 
         <!-- Sports Overlay -->
         <div class="overlay">
+          <!-- TODO - Finish Baseball Overlay -->
           <div v-if="baseballScoreboard" class="hud baseball">
             <div>B: {{ baseballScoreboard.balls }}</div>
             <div>S: {{ baseballScoreboard.strikes }}</div>
@@ -175,15 +192,60 @@ import type {
   BasketballScoreboard,
 } from '../../interfaces/scoreboard';
 import Icon from '../../components/icons/Icon.vue';
+import TimeInput from '../../components/ui/TimeInput.vue';
 
 const BASE_W = 1280;
 const BASE_H = 720;
 
 const viewportRef = ref<HTMLElement | null>(null);
 const scaleWrapper = ref<HTMLElement | null>(null);
-
 const scoreboardStore = useScoreboardStore();
 const { scoreboard } = storeToRefs(scoreboardStore);
+
+type EditMode = 'none' | 'segmentDuration' | 'timeRemaining';
+const editMode = ref<EditMode>('none');
+
+const editingSegmentDuration = computed(
+  () => editMode.value === 'segmentDuration',
+);
+
+const timerInput = computed({
+  get() {
+    return (
+      (editingSegmentDuration.value
+        ? scoreboard.value?.timer?.segmentDuration
+        : scoreboard.value?.timer?.timeRemaining) ?? 0
+    );
+  },
+  set(value) {
+    if (scoreboard.value?.timer) {
+      if (editingSegmentDuration.value) {
+        scoreboard.value.timer.segmentDuration = value ?? 0;
+      }
+      scoreboard.value.timer.timeRemaining = value ?? 0;
+    }
+  },
+});
+
+const isEditing = computed({
+  get: () => editMode.value !== 'none',
+  set: (value) => {
+    if (value) {
+      editMode.value = !scoreboard.value?.timer
+        ? 'segmentDuration'
+        : 'timeRemaining';
+
+      if (scoreboard.value && editingSegmentDuration.value) {
+        scoreboard.value.timer = {
+          segmentDuration: 600000,
+          timeRemaining: 600000,
+        };
+      }
+    } else {
+      editMode.value = 'none';
+    }
+  },
+});
 
 const baseballScoreboard = computed(() =>
   scoreboard.value?.type === 'baseball'
@@ -206,25 +268,39 @@ const segmentName = computed(() => {
   }
 });
 
-const teamAName = computed(() => 'Chicago Bulls');
-const teamBName = computed(() => 'Golden State Warriors');
+const teamAName = computed(() => 'Team A');
+const teamBName = computed(() => 'Team B');
 
 const formattedTime = computed(() => {
-  const t = scoreboard.value?.timer?.timeRemaining ?? 0; // seconds (can be float)
+  const t = scoreboard.value?.timer?.timeRemaining ?? 0; // ms
 
-  const minutes = Math.floor(t / 60);
-  const seconds = Math.floor(t % 60);
-  const fractional = Math.floor((t % 1) * 100);
+  const totalSeconds = Math.floor(t / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  const milliseconds = t % 1000;
+  const hundredths = Math.floor(milliseconds / 10);
 
   const base = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-  // show hundredths only under 10 seconds
-  if (t < 10) {
-    return `${base}.${fractional.toString().padStart(2, '0')}`;
+  // show hundredths only under 10 seconds remaining
+  if (t > 0 && totalSeconds < 10) {
+    return `${base}.${hundredths.toString().padStart(2, '0')}`;
   }
 
   return base;
 });
+
+function toggleEdit() {
+  isEditing.value = !isEditing.value;
+}
+
+function onTimerClicked() {
+  // Timer segmentDuration not set, enable edit
+  if (!scoreboard.value?.timer || !scoreboard.value.timer.segmentDuration) {
+    isEditing.value = true;
+  }
+}
 
 async function adjustSegment(delta: number = 1) {
   scoreboardStore.adjustSegment(delta);
@@ -273,6 +349,8 @@ onActivated(() => {
 onDeactivated(() => {
   ro?.disconnect();
   ro = null;
+
+  editMode.value = 'none';
 });
 </script>
 
@@ -305,6 +383,19 @@ onDeactivated(() => {
   box-sizing: border-box;
 }
 
+.canvas.editing {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -2px;
+}
+
+.edit-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  opacity: 0.8;
+}
+
 /* TIMER */
 .top-bar {
   display: flex;
@@ -317,12 +408,32 @@ onDeactivated(() => {
   padding-top: 12px;
 }
 
-.timer {
+.timer,
+.timer-input {
   font-size: 128px;
   font-weight: 600;
   letter-spacing: -0.5px;
   line-height: 1;
   opacity: 0.85;
+  height: 125px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-input {
+  text-align: center;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-h);
+  padding: 0;
+  margin: 0;
+}
+
+.timer-input:focus {
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .segment {
