@@ -17,7 +17,7 @@
         @click="createScoreboard('generic')"
       >
         <h3><Icon name="trophy" />Generic</h3>
-        <p>Simple scoreboard with basic scoring.</p>
+        <p>Generic scoreboard with timer and scoring.</p>
       </div>
 
       <div
@@ -26,7 +26,7 @@
         @click="createScoreboard('baseball')"
       >
         <h3><Icon name="baseball" />Baseball</h3>
-        <p>Runs, balls, strikes, outs tracking.</p>
+        <p>Runs, balls, strikes, outs, and inning tracking.</p>
       </div>
 
       <div
@@ -35,7 +35,7 @@
         @click="createScoreboard('basketball')"
       >
         <h3><Icon name="basketball" />Basketball</h3>
-        <p>Fouls, shot clock, possession tracking.</p>
+        <p>Timer, fouls, possession, and score tracking.</p>
       </div>
     </section>
   </div>
