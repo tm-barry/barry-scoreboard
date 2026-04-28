@@ -194,6 +194,7 @@ import type {
 import Icon from '../../components/icons/Icon.vue';
 import TimeInput from '../../components/ui/TimeInput.vue';
 import { CountdownTimer } from '../../utils/timer';
+import { initAudio, playBuzzer } from '../../engines/audioEngine';
 
 type EditMode = 'none' | 'segmentDuration' | 'timeRemaining';
 
@@ -309,6 +310,7 @@ function toggleEdit() {
 }
 
 function onTimerClicked() {
+  initAudio();
   if (isEditing.value) return;
 
   if (!isSegmentDurationSet.value) {
@@ -321,7 +323,8 @@ function onTimerClicked() {
     return;
   }
 
-  timer.start(timer.getRemaining());
+  const timeRemaining = timer.getRemaining();
+  if (timeRemaining) timer.start(timeRemaining);
 }
 
 async function adjustSegment(delta: number = 1) {
@@ -390,7 +393,7 @@ onMounted(() => {
     onComplete: () => {
       if (scoreboard.value?.timer) {
         scoreboard.value.timer.timeRemaining = 0;
-        // TODO - buzzer
+        playBuzzer();
       }
     },
   });
