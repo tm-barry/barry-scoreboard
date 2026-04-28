@@ -1,47 +1,30 @@
 export type TimerOptions = {
   durationMs: number;
-
-  /** Called frequently for UI updates */
-  onTick?: (remainingMs: number) => void;
-
-  /** Called exactly once when timer hits 0 */
-  onComplete?: () => void;
-
-  /** UI refresh rate (NOT time source) */
   tickRateMs?: number;
-
-  /** Optional: use performance.now() instead of Date.now() (recommended) */
   useHighResolutionTime?: boolean;
+
+  onTick?: (remainingMs: number) => void;
+  onComplete?: () => void;
 };
 
 export class CountdownTimer {
   private durationMs: number;
   private endTime = 0;
-
   private intervalId: number | null = null;
-
   private paused = false;
   private completed = false;
-
   private remainingOnPause = 0;
-
   private options: TimerOptions;
-
   private now: () => number;
 
   constructor(options: TimerOptions) {
     this.options = options;
     this.durationMs = options.durationMs;
 
-    // High precision clock is better for UI timers
     this.now = options.useHighResolutionTime
       ? () => performance.now()
       : () => Date.now();
   }
-
-  // -------------------------
-  // CONTROL
-  // -------------------------
 
   start(durationMs?: number) {
     this.stop();
@@ -93,14 +76,13 @@ export class CountdownTimer {
       this.durationMs = durationMs;
     }
 
-    this.endTime = this.now() + this.durationMs;
+    this.paused = true;
+    this.completed = false;
+    this.remainingOnPause = this.durationMs;
+    this.endTime = 0;
 
     this.options.onTick?.(this.durationMs);
   }
-
-  // -------------------------
-  // STATE
-  // -------------------------
 
   getRemaining(): number {
     if (this.paused) return this.remainingOnPause;
@@ -117,12 +99,8 @@ export class CountdownTimer {
     return this.paused;
   }
 
-  // -------------------------
-  // LOOP
-  // -------------------------
-
   private startLoop() {
-    const tickRate = this.options.tickRateMs ?? 100;
+    const tickRate = this.options.tickRateMs ?? 50;
 
     this.tick(); // immediate render
 
@@ -135,8 +113,6 @@ export class CountdownTimer {
     if (this.completed) return;
 
     const remaining = this.getRemaining();
-
-    // Always clamp to zero for UI consistency
     const safeRemaining = Math.max(0, remaining);
 
     this.options.onTick?.(safeRemaining);

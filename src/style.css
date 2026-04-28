@@ -1,7 +1,7 @@
 :root {
   --text: #4b5563;
   --text-h: #0f172a;
-  --bg: #ffffff;
+  --bg: #f8fafc;
   --border: #e5e7eb;
   --code-bg: #f3f4f6;
   --accent: #0073cf;
@@ -27,6 +27,7 @@
   --card-hover-bg: #f3f4f6;
   --card-border: #e5e7eb;
   --card-shadow: rgba(0, 0, 0, 0.06) 0 6px 20px;
+  --scoreboard-text: #1f2937;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -70,6 +71,7 @@
     --card-bg: #1f2937;
     --card-hover-bg: #2a3441;
     --card-border: #2a2f3a;
+    --scoreboard-text: #f3f4f6;
   }
 }
 

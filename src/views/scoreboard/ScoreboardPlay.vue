@@ -19,7 +19,7 @@
               v-model="timerInput"
               class="timer-input"
             />
-            <span v-else>
+            <span v-else :style="{ opacity: isSegmentDurationSet ? 1 : 0.3 }">
               {{ formattedTime }}
             </span>
           </div>
@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onActivated, onDeactivated } from 'vue';
+import { computed, ref, onActivated, onDeactivated, onMounted } from 'vue';
 import { useScoreboardStore } from '../../stores/scoreboard';
 import { storeToRefs } from 'pinia';
 import type {
@@ -193,20 +193,28 @@ import type {
 } from '../../interfaces/scoreboard';
 import Icon from '../../components/icons/Icon.vue';
 import TimeInput from '../../components/ui/TimeInput.vue';
+import { CountdownTimer } from '../../utils/timer';
+
+type EditMode = 'none' | 'segmentDuration' | 'timeRemaining';
 
 const BASE_W = 1280;
 const BASE_H = 720;
+
+let timer: CountdownTimer;
 
 const viewportRef = ref<HTMLElement | null>(null);
 const scaleWrapper = ref<HTMLElement | null>(null);
 const scoreboardStore = useScoreboardStore();
 const { scoreboard } = storeToRefs(scoreboardStore);
 
-type EditMode = 'none' | 'segmentDuration' | 'timeRemaining';
 const editMode = ref<EditMode>('none');
 
 const editingSegmentDuration = computed(
   () => editMode.value === 'segmentDuration',
+);
+
+const isSegmentDurationSet = computed(
+  () => !!scoreboard.value?.timer?.segmentDuration,
 );
 
 const timerInput = computed({
@@ -292,14 +300,28 @@ const formattedTime = computed(() => {
 });
 
 function toggleEdit() {
+  if (isEditing.value) {
+    timer.reset(timerInput.value);
+  } else {
+    timer.pause();
+  }
   isEditing.value = !isEditing.value;
 }
 
 function onTimerClicked() {
-  // Timer segmentDuration not set, enable edit
-  if (!scoreboard.value?.timer || !scoreboard.value.timer.segmentDuration) {
+  if (isEditing.value) return;
+
+  if (!isSegmentDurationSet.value) {
     isEditing.value = true;
+    return;
   }
+
+  if (timer.isRunning()) {
+    timer.pause();
+    return;
+  }
+
+  timer.start(timer.getRemaining());
 }
 
 async function adjustSegment(delta: number = 1) {
@@ -351,6 +373,27 @@ onDeactivated(() => {
   ro = null;
 
   editMode.value = 'none';
+  timer.stop();
+});
+
+onMounted(() => {
+  timer = new CountdownTimer({
+    durationMs: 600000,
+    useHighResolutionTime: true,
+
+    onTick: (ms) => {
+      if (scoreboard.value?.timer) {
+        scoreboard.value.timer.timeRemaining = ms;
+      }
+    },
+
+    onComplete: () => {
+      if (scoreboard.value?.timer) {
+        scoreboard.value.timer.timeRemaining = 0;
+        // TODO - buzzer
+      }
+    },
+  });
 });
 </script>
 
@@ -381,6 +424,7 @@ onDeactivated(() => {
   display: grid;
   grid-template-rows: auto 1fr auto;
   box-sizing: border-box;
+  color: var(--scoreboard-text);
 }
 
 .canvas.editing {
@@ -402,10 +446,12 @@ onDeactivated(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   gap: 40px;
-
   padding-top: 12px;
+}
+
+.timer {
+  cursor: pointer;
 }
 
 .timer,
@@ -414,7 +460,6 @@ onDeactivated(() => {
   font-weight: 600;
   letter-spacing: -0.5px;
   line-height: 1;
-  opacity: 0.85;
   height: 125px;
   font-variant-numeric: tabular-nums;
 }
@@ -547,7 +592,7 @@ onDeactivated(() => {
 .vs {
   font-size: 36px;
   font-weight: 600;
-  opacity: 0.25;
+  opacity: 0.35;
   letter-spacing: 2px;
 }
 
@@ -562,7 +607,6 @@ onDeactivated(() => {
   justify-content: center;
   gap: 20px;
 
-  opacity: 0.8;
   pointer-events: none;
 }
 
