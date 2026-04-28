@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, ref, type StyleValue } from 'vue';
+import { computed, onMounted, ref, type StyleValue } from 'vue';
 import { useBracketStore } from '../../stores/bracket';
 import type { Match, Slot } from '../../interfaces/bracket';
 import {
@@ -352,7 +352,7 @@ function resetView() {
   offsetY.value = 0;
 }
 
-onActivated(() => {
+onMounted(() => {
   fitToView();
 });
 </script>

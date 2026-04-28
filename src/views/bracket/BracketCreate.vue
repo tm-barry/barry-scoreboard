@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onActivated, ref } from 'vue';
+import { inject, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createId } from '../../utils/id';
 import { useBracketStore } from '../../stores/bracket';
@@ -137,7 +137,7 @@ async function generateBracket() {
   router.push({ name: 'bracket-manage' });
 }
 
-onActivated(() => {
+onMounted(() => {
   bracketName.value = '';
   sport.value = 'generic';
   teams.value = [

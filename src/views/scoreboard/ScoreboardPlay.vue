@@ -52,7 +52,14 @@
             <div>
               <div class="team">
                 <div class="name">
-                  <span class="name-text">{{ teamAName }}</span>
+                  <input
+                    v-if="isEditing"
+                    v-model="teamAName"
+                    class="name-input"
+                  />
+                  <span v-else class="name-text">
+                    {{ teamAName }}
+                  </span>
                 </div>
                 <div class="score" @click="adjustTeamScore('A')">
                   {{ scoreboard?.scoreA ?? 0 }}
@@ -81,7 +88,14 @@
             <div>
               <div class="team">
                 <div class="name">
-                  <span class="name-text">{{ teamBName }}</span>
+                  <input
+                    v-if="isEditing"
+                    v-model="teamBName"
+                    class="name-input"
+                  />
+                  <span v-else class="name-text">
+                    {{ teamBName }}
+                  </span>
                 </div>
                 <div class="score" @click="adjustTeamScore('B')">
                   {{ scoreboard?.scoreB ?? 0 }}
@@ -184,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onActivated, onDeactivated, onMounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useScoreboardStore } from '../../stores/scoreboard';
 import { storeToRefs } from 'pinia';
 import type {
@@ -194,7 +208,7 @@ import type {
 import Icon from '../../components/icons/Icon.vue';
 import TimeInput from '../../components/ui/TimeInput.vue';
 import { CountdownTimer } from '../../utils/timer';
-import { initAudio, playBuzzer } from '../../engines/audioEngine';
+import { initAudio, playBuzzer, stopAllAudio } from '../../engines/audioEngine';
 
 type EditMode = 'none' | 'segmentDuration' | 'timeRemaining';
 
@@ -277,8 +291,19 @@ const segmentName = computed(() => {
   }
 });
 
-const teamAName = computed(() => 'Team A');
-const teamBName = computed(() => 'Team B');
+const teamAName = computed({
+  get: () => scoreboard.value?.teamA ?? 'Team A',
+  set: (val: string) => {
+    if (scoreboard.value) scoreboard.value.teamA = val;
+  },
+});
+
+const teamBName = computed({
+  get: () => scoreboard.value?.teamB ?? 'Team B',
+  set: (val: string) => {
+    if (scoreboard.value) scoreboard.value.teamB = val;
+  },
+});
 
 const formattedTime = computed(() => {
   const t = scoreboard.value?.timer?.timeRemaining ?? 0; // ms
@@ -302,6 +327,8 @@ const formattedTime = computed(() => {
 
 function toggleEdit() {
   if (isEditing.value) {
+    teamAName.value = teamAName.value?.trim() || 'Team A';
+    teamBName.value = teamBName.value?.trim() || 'Team B';
     timer.reset(timerInput.value);
   } else {
     timer.pause();
@@ -364,22 +391,11 @@ function updateScale() {
   scaleWrapper.value.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
 }
 
-onActivated(() => {
+onMounted(() => {
   updateScale();
-
   ro = new ResizeObserver(updateScale);
   if (viewportRef.value) ro.observe(viewportRef.value);
-});
 
-onDeactivated(() => {
-  ro?.disconnect();
-  ro = null;
-
-  editMode.value = 'none';
-  timer.stop();
-});
-
-onMounted(() => {
   timer = new CountdownTimer({
     durationMs: 600000,
     useHighResolutionTime: true,
@@ -397,6 +413,15 @@ onMounted(() => {
       }
     },
   });
+});
+
+onUnmounted(() => {
+  ro?.disconnect();
+  ro = null;
+
+  editMode.value = 'none';
+  timer.stop();
+  stopAllAudio();
 });
 </script>
 
@@ -566,6 +591,23 @@ onMounted(() => {
   overflow: hidden;
   font-size: 32px;
   line-height: 1.3;
+}
+
+.name-input {
+  width: 400px;
+  text-align: center;
+  font-size: 32px;
+  line-height: 1.3;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-h);
+}
+
+.name-input:focus {
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .score {

@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, computed } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from '../../composables/useConfirm';
 import { useBracketStore } from '../../stores/bracket';
@@ -62,10 +62,6 @@ const store = useBracketStore();
 const brackets = computed(() =>
   [...store.brackets].sort((a, b) => b.updatedAt - a.updatedAt),
 );
-
-onActivated(async () => {
-  await store.loadBrackets();
-});
 
 function createBracket() {
   router.push('/bracket/create');
@@ -92,6 +88,10 @@ async function confirmDelete(id: string) {
 
   await store.deleteBracket(id);
 }
+
+onMounted(async () => {
+  await store.loadBrackets();
+});
 </script>
 
 <style scoped>
