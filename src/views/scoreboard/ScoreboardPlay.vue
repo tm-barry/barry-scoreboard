@@ -54,7 +54,8 @@
                 <div class="name">
                   <input
                     v-if="isEditing"
-                    v-model="teamAName"
+                    v-model="editTeamAName"
+                    placeholder="Enter team A name..."
                     class="name-input"
                   />
                   <span v-else class="name-text">
@@ -90,7 +91,8 @@
                 <div class="name">
                   <input
                     v-if="isEditing"
-                    v-model="teamBName"
+                    v-model="editTeamBName"
+                    placeholder="Enter team B name..."
                     class="name-input"
                   />
                   <span v-else class="name-text">
@@ -291,19 +293,23 @@ const segmentName = computed(() => {
   }
 });
 
-const teamAName = computed({
-  get: () => scoreboard.value?.teamA ?? 'Team A',
+const editTeamAName = computed({
+  get: () => scoreboard.value?.teamA,
   set: (val: string) => {
     if (scoreboard.value) scoreboard.value.teamA = val;
   },
 });
 
-const teamBName = computed({
-  get: () => scoreboard.value?.teamB ?? 'Team B',
+const teamAName = computed(() => scoreboard.value?.teamA || 'Team A');
+
+const editTeamBName = computed({
+  get: () => scoreboard.value?.teamB,
   set: (val: string) => {
     if (scoreboard.value) scoreboard.value.teamB = val;
   },
 });
+
+const teamBName = computed(() => scoreboard.value?.teamB || 'Team B');
 
 const formattedTime = computed(() => {
   const t = scoreboard.value?.timer?.timeRemaining ?? 0; // ms
@@ -327,8 +333,6 @@ const formattedTime = computed(() => {
 
 function toggleEdit() {
   if (isEditing.value) {
-    teamAName.value = teamAName.value?.trim() || 'Team A';
-    teamBName.value = teamBName.value?.trim() || 'Team B';
     timer.reset(timerInput.value);
   } else {
     timer.pause();
