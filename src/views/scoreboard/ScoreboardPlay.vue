@@ -355,6 +355,13 @@ function onTimerClicked() {
 }
 
 async function adjustSegment(delta: number = 1) {
+  const timerData = scoreboard.value?.timer;
+
+  if (timerData && timerData.timeRemaining === 0) {
+    timerData.timeRemaining = timerData.segmentDuration;
+    timer.reset(timerData.segmentDuration);
+  }
+
   scoreboardStore.adjustSegment(delta);
   // TODO - save
 }
