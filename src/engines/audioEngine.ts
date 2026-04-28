@@ -69,7 +69,7 @@ export function playBuzzer() {
   const ctx = getCtx();
   const t = ctx.currentTime;
 
-  const duration = 1.4;
+  const duration = 2;
 
   const master = ctx.createGain();
   master.gain.setValueAtTime(0.0001, t);
@@ -83,6 +83,16 @@ export function playBuzzer() {
   master.connect(shaper);
   shaper.connect(state.masterGain!);
 
+  // Vibration/pulsing
+  const vibrato = ctx.createOscillator();
+  vibrato.type = 'sine';
+  vibrato.frequency.setValueAtTime(6, t); // 6Hz vibration speed
+
+  const vibratoDepth = ctx.createGain();
+  vibratoDepth.gain.setValueAtTime(0.3, t); // 0-1 range, controls vibration intensity
+
+  vibrato.connect(vibratoDepth);
+
   const osc1 = ctx.createOscillator();
   const osc2 = ctx.createOscillator();
   const sub = ctx.createOscillator();
@@ -95,7 +105,7 @@ export function playBuzzer() {
 
   osc1.frequency.setValueAtTime(baseFreq, t);
   osc2.frequency.setValueAtTime(baseFreq * 1.01, t);
-  sub.frequency.setValueAtTime(baseFreq * 0.5, t); // still supportive, not dominant
+  sub.frequency.setValueAtTime(baseFreq * 0.5, t);
 
   const mainGain = ctx.createGain();
   const subGain = ctx.createGain();
@@ -110,6 +120,10 @@ export function playBuzzer() {
   subGain.gain.setValueAtTime(0.2, t + duration - 0.1);
   subGain.gain.linearRampToValueAtTime(0.0001, t + duration);
 
+  // Connect vibrato to the main gains for amplitude modulation
+  vibratoDepth.connect(mainGain.gain);
+  vibratoDepth.connect(subGain.gain);
+
   osc1.connect(mainGain);
   osc2.connect(mainGain);
   sub.connect(subGain);
@@ -117,10 +131,12 @@ export function playBuzzer() {
   mainGain.connect(master);
   subGain.connect(master);
 
+  vibrato.start(t);
   osc1.start(t);
   osc2.start(t);
   sub.start(t);
 
+  vibrato.stop(t + duration);
   osc1.stop(t + duration);
   osc2.stop(t + duration);
   sub.stop(t + duration);
