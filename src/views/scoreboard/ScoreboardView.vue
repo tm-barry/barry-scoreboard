@@ -20,14 +20,14 @@
         <p>Generic scoreboard with timer and scoring.</p>
       </div>
 
-      <div
+      <!-- <div
         :to="{ name: 'scoreboard-play' }"
         class="card scoreboard-item"
         @click="createScoreboard('baseball')"
       >
         <h3><Icon name="baseball" />Baseball</h3>
         <p>Runs, balls, strikes, outs, and inning tracking.</p>
-      </div>
+      </div> -->
 
       <div
         :to="{ name: 'scoreboard-play' }"

@@ -2,7 +2,7 @@
   <div class="home">
     <!-- Intro -->
     <section class="intro">
-      <img src="../assets/barryscoreboard.svg" alt="Logo" class="logo" />
+      <img src="../assets/icon.svg" alt="Logo" class="logo" />
       <h1>BarryScoreboard</h1>
       <p>
         A simple PWA app for managing tournament brackets and tracking match

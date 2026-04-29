@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- FULL CANVAS BACKGROUND (prevents iOS white halo) -->
+  <rect width="24" height="24" fill="#0073cf"/>
+
+  <!-- Scoreboard background -->
+  <rect
+    width="22"
+    height="13"
+    x="1"
+    y="5.5"
+    rx="1"
+    ry="1"
+    fill="#000000"
+    />
+
+  <!-- DIGITS -->
+  <defs>
+    <g id="digit-8" fill="#ffffff">
+      <path d="M0.5,0 H2.5 V0.5 H0.5 Z"/>
+      <path d="M0.5,4.5 H2.5 V5 H0.5 Z"/>
+      <path d="M0.5,2.25 H2.5 V2.75 H0.5 Z"/>
+      <path d="M0,0.5 H0.5 V2.25 H0 Z"/>
+      <path d="M0,2.75 H0.5 V4.5 H0 Z"/>
+      <path d="M2.5,0.5 H3 V2.25 H2.5 Z"/>
+      <path d="M2.5,2.75 H3 V4.5 H2.5 Z"/>
+    </g>
+  </defs>
+
+  <!-- SCORES -->
+  <g transform="matrix(1.2,0,0,1.2,9.96,9)">
+    <g transform="translate(-6.5)">
+      <use href="#digit-8"/>
+      <g transform="translate(3.4)">
+        <use href="#digit-8"/>
+      </g>
+    </g>
+
+    <g transform="translate(3.5)">
+      <use href="#digit-8"/>
+      <g transform="translate(3.4)">
+        <use href="#digit-8"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- LIGHTNING (kept centered, slightly safer spacing) -->
+  <g transform="translate(1.577,1.15685)">
+    <path
+      d="m 11.297,2.33685 -5.32,10.3474 h 3.724 v 6.6652 l 5.168,-10.3474 h -3.572 z"
+      fill="#f4ce14"
+      />
+    </g>
+
+  </svg>

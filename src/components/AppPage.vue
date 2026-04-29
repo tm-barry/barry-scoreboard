@@ -4,7 +4,7 @@
     <header class="top-nav">
       <IconButton name="menu" @click="toggle" />
       <router-link to="/" class="title-link">
-        <img src="../assets/barryscoreboard.svg" alt="Logo" class="logo" />
+        <img src="../assets/icon.svg" alt="Logo" class="logo" />
         <h2 class="title">
           <slot name="title"> BarryScoreboard </slot>
         </h2>
