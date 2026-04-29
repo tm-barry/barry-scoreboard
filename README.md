@@ -8,6 +8,12 @@
   A simple Vue 3 PWA for managing tournament brackets and tracking match scores.
 </p>
 
+<p align="center">
+  <a href="https://tm-barry.github.io/barry-scoreboard/">
+    https://tm-barry.github.io/barry-scoreboard/
+  </a>
+</p>
+
 ---
 
 ## Features
