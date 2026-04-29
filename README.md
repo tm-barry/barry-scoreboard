@@ -1,5 +1,36 @@
-# Vue 3 + TypeScript + Vite
+<p align="center">
+  <img alt="logo" src="src/assets/icon.svg" width="256" height="256">
+</p>
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+<h1 align="center">BarryScoreboard</h1>
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+<p align="center">
+  A simple Vue 3 PWA for managing tournament brackets and tracking match scores.
+</p>
+
+---
+
+## Features
+
+- Tournament bracket creation and management
+- Scoreboard with timer to track game progress
+- Installable as a PWA
+- Offline support
+
+## Getting Started
+
+```bash
+# Development
+npm install
+npm run dev
+
+# Build
+npm run build
+npm run preview
+```
+
+## License
+
+This project is licensed under the MIT license.
+
+[Jump to license](LICENSE)
