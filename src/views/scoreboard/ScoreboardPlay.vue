@@ -1,202 +1,200 @@
 <template>
-  <div ref="viewportRef" class="viewport no-select">
-    <div ref="scaleWrapper" class="scale-wrapper">
-      <div class="canvas" :class="{ editing: isEditing }">
-        <!-- Edit -->
-        <div class="edit-button">
-          <IconButton
-            :name="isEditing ? 'check' : 'pencil'"
-            :icon-size="36"
-            @click="toggleEdit()"
+  <ViewportScaler class="no-select">
+    <div class="canvas" :class="{ editing: isEditing }">
+      <!-- Edit -->
+      <div class="edit-button">
+        <IconButton
+          :name="isEditing ? 'check' : 'pencil'"
+          :icon-size="36"
+          @click="toggleEdit()"
+        />
+      </div>
+
+      <!-- Timer -->
+      <div class="top-bar">
+        <div v-if="!baseballScoreboard" class="timer" @click="onTimerClicked">
+          <TimeInput
+            v-if="isEditing"
+            v-model="timerInput"
+            class="timer-input"
           />
+          <span v-else :style="timerStyle">
+            {{ formattedTime }}
+          </span>
         </div>
 
-        <!-- Timer -->
-        <div class="top-bar">
-          <div v-if="!baseballScoreboard" class="timer" @click="onTimerClicked">
-            <TimeInput
-              v-if="isEditing"
-              v-model="timerInput"
-              class="timer-input"
-            />
-            <span v-else :style="{ opacity: isSegmentDurationSet ? 1 : 0.3 }">
-              {{ formattedTime }}
-            </span>
+        <!-- Segment moved BELOW timer -->
+        <div class="segment">
+          <div class="segment-name">{{ segmentName }}</div>
+          <div class="segment-value" @click="adjustSegment()">
+            {{ scoreboard?.segment ?? 0 }}
           </div>
+          <div class="segment-controls">
+            <IconButton
+              name="minus"
+              :icon-size="36"
+              @click.stop="adjustSegment(-1)"
+            />
+            <IconButton
+              name="plus"
+              :icon-size="36"
+              @click.stop="adjustSegment()"
+            />
+          </div>
+        </div>
+      </div>
 
-          <!-- Segment moved BELOW timer -->
-          <div class="segment">
-            <div class="segment-name">{{ segmentName }}</div>
-            <div class="segment-value" @click="adjustSegment()">
-              {{ scoreboard?.segment ?? 0 }}
+      <!-- Main Score -->
+      <div class="main">
+        <!-- LEFT HALF -->
+        <div class="side left">
+          <div>
+            <div class="team">
+              <div class="name">
+                <input
+                  v-if="isEditing"
+                  v-model="editTeamAName"
+                  placeholder="Enter team A name..."
+                  class="name-input"
+                />
+                <span v-else class="name-text">
+                  {{ teamAName }}
+                </span>
+              </div>
+              <div class="score" @click="adjustTeamScore('A')">
+                {{ scoreboard?.scoreA ?? 0 }}
+              </div>
             </div>
-            <div class="segment-controls">
+            <div class="score-controls">
               <IconButton
                 name="minus"
                 :icon-size="36"
-                @click.stop="adjustSegment(-1)"
+                @click.stop="adjustTeamScore('A', -1)"
               />
               <IconButton
                 name="plus"
                 :icon-size="36"
-                @click.stop="adjustSegment()"
+                @click.stop="adjustTeamScore('A')"
               />
             </div>
           </div>
         </div>
 
-        <!-- Main Score -->
-        <div class="main">
-          <!-- LEFT HALF -->
-          <div class="side left">
-            <div>
-              <div class="team">
-                <div class="name">
-                  <input
-                    v-if="isEditing"
-                    v-model="editTeamAName"
-                    placeholder="Enter team A name..."
-                    class="name-input"
-                  />
-                  <span v-else class="name-text">
-                    {{ teamAName }}
-                  </span>
-                </div>
-                <div class="score" @click="adjustTeamScore('A')">
-                  {{ scoreboard?.scoreA ?? 0 }}
-                </div>
+        <!-- CENTER -->
+        <div class="vs">VS</div>
+
+        <!-- RIGHT HALF -->
+        <div class="side right">
+          <div>
+            <div class="team">
+              <div class="name">
+                <input
+                  v-if="isEditing"
+                  v-model="editTeamBName"
+                  placeholder="Enter team B name..."
+                  class="name-input"
+                />
+                <span v-else class="name-text">
+                  {{ teamBName }}
+                </span>
               </div>
-              <div class="score-controls">
-                <IconButton
-                  name="minus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamScore('A', -1)"
-                />
-                <IconButton
-                  name="plus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamScore('A')"
-                />
+              <div class="score" @click="adjustTeamScore('B')">
+                {{ scoreboard?.scoreB ?? 0 }}
               </div>
             </div>
-          </div>
-
-          <!-- CENTER -->
-          <div class="vs">VS</div>
-
-          <!-- RIGHT HALF -->
-          <div class="side right">
-            <div>
-              <div class="team">
-                <div class="name">
-                  <input
-                    v-if="isEditing"
-                    v-model="editTeamBName"
-                    placeholder="Enter team B name..."
-                    class="name-input"
-                  />
-                  <span v-else class="name-text">
-                    {{ teamBName }}
-                  </span>
-                </div>
-                <div class="score" @click="adjustTeamScore('B')">
-                  {{ scoreboard?.scoreB ?? 0 }}
-                </div>
-              </div>
-              <div class="score-controls">
-                <IconButton
-                  name="minus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamScore('B', -1)"
-                />
-                <IconButton
-                  name="plus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamScore('B')"
-                />
-              </div>
+            <div class="score-controls">
+              <IconButton
+                name="minus"
+                :icon-size="36"
+                @click.stop="adjustTeamScore('B', -1)"
+              />
+              <IconButton
+                name="plus"
+                :icon-size="36"
+                @click.stop="adjustTeamScore('B')"
+              />
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Sports Overlay -->
-        <div class="overlay">
-          <!-- TODO - Finish Baseball Overlay -->
-          <div v-if="baseballScoreboard" class="hud baseball">
-            <div>B: {{ baseballScoreboard.balls }}</div>
-            <div>S: {{ baseballScoreboard.strikes }}</div>
-            <div>O: {{ baseballScoreboard.outs }}</div>
-          </div>
+      <!-- Sports Overlay -->
+      <div class="overlay">
+        <!-- TODO - Finish Baseball Overlay -->
+        <div v-if="baseballScoreboard" class="hud baseball">
+          <div>B: {{ baseballScoreboard.balls }}</div>
+          <div>S: {{ baseballScoreboard.strikes }}</div>
+          <div>O: {{ baseballScoreboard.outs }}</div>
+        </div>
 
-          <div v-if="basketballScoreboard" class="hud basketball">
-            <!-- LEFT (Team A) -->
-            <div class="hud-side left">
-              <div class="foul-block">
-                <div class="label">Fouls</div>
-                <div class="value" @click="adjustTeamFouls('A')">
-                  {{ basketballScoreboard.foulsA }}
-                </div>
+        <div v-if="basketballScoreboard" class="hud basketball">
+          <!-- LEFT (Team A) -->
+          <div class="hud-side left">
+            <div class="foul-block">
+              <div class="label">Fouls</div>
+              <div class="value" @click="adjustTeamFouls('A')">
+                {{ basketballScoreboard.foulsA }}
+              </div>
 
-                <div class="foul-controls">
-                  <IconButton
-                    name="minus"
-                    :icon-size="36"
-                    @click.stop="adjustTeamFouls('A', -1)"
-                  />
-                  <IconButton
-                    name="plus"
-                    :icon-size="36"
-                    @click.stop="adjustTeamFouls('A')"
-                  />
-                </div>
+              <div class="foul-controls">
+                <IconButton
+                  name="minus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamFouls('A', -1)"
+                />
+                <IconButton
+                  name="plus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamFouls('A')"
+                />
               </div>
             </div>
+          </div>
 
-            <!-- CENTER (Possession) -->
-            <div class="hud-center">
-              <Icon
-                name="arrowBigLeft"
-                class="arrow"
-                :class="{ active: basketballScoreboard.possession === 'A' }"
-                :size="64"
-                @click="setPossession('A')"
-              />
-              <Icon
-                name="arrowBigRight"
-                class="arrow"
-                :class="{ active: basketballScoreboard.possession === 'B' }"
-                :size="64"
-                @click="setPossession('B')"
-              />
-            </div>
+          <!-- CENTER (Possession) -->
+          <div class="hud-center">
+            <Icon
+              name="arrowBigLeft"
+              class="arrow"
+              :class="{ active: basketballScoreboard.possession === 'A' }"
+              :size="64"
+              @click="setPossession('A')"
+            />
+            <Icon
+              name="arrowBigRight"
+              class="arrow"
+              :class="{ active: basketballScoreboard.possession === 'B' }"
+              :size="64"
+              @click="setPossession('B')"
+            />
+          </div>
 
-            <!-- RIGHT (Team B) -->
-            <div class="hud-side right">
-              <div class="foul-block">
-                <div class="label">Fouls</div>
-                <div class="value" @click="adjustTeamFouls('B')">
-                  {{ basketballScoreboard.foulsB }}
-                </div>
+          <!-- RIGHT (Team B) -->
+          <div class="hud-side right">
+            <div class="foul-block">
+              <div class="label">Fouls</div>
+              <div class="value" @click="adjustTeamFouls('B')">
+                {{ basketballScoreboard.foulsB }}
+              </div>
 
-                <div class="foul-controls">
-                  <IconButton
-                    name="minus"
-                    :icon-size="36"
-                    @click.stop="adjustTeamFouls('B', -1)"
-                  />
-                  <IconButton
-                    name="plus"
-                    :icon-size="36"
-                    @click.stop="adjustTeamFouls('B')"
-                  />
-                </div>
+              <div class="foul-controls">
+                <IconButton
+                  name="minus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamFouls('B', -1)"
+                />
+                <IconButton
+                  name="plus"
+                  :icon-size="36"
+                  @click.stop="adjustTeamFouls('B')"
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </ViewportScaler>
 </template>
 
 <script setup lang="ts">
@@ -209,22 +207,18 @@ import type {
 } from '../../interfaces/scoreboard';
 import Icon from '../../components/icons/Icon.vue';
 import TimeInput from '../../components/ui/TimeInput.vue';
+import ViewportScaler from '../../components/ui/ViewportScaler.vue';
 import { CountdownTimer } from '../../utils/timer';
 import { initAudio, playBuzzer, stopAllAudio } from '../../engines/audioEngine';
 
 type EditMode = 'none' | 'segmentDuration' | 'timeRemaining';
 
-const BASE_W = 1280;
-const BASE_H = 720;
-
 let timer: CountdownTimer;
 
-const viewportRef = ref<HTMLElement | null>(null);
-const scaleWrapper = ref<HTMLElement | null>(null);
 const scoreboardStore = useScoreboardStore();
 const { scoreboard } = storeToRefs(scoreboardStore);
-
 const editMode = ref<EditMode>('none');
+const timerRunning = ref(false);
 
 const editingSegmentDuration = computed(
   () => editMode.value === 'segmentDuration',
@@ -233,6 +227,18 @@ const editingSegmentDuration = computed(
 const isSegmentDurationSet = computed(
   () => !!scoreboard.value?.timer?.segmentDuration,
 );
+
+const timerStyle = computed(() => {
+  if (!isSegmentDurationSet.value) {
+    return { opacity: 0.3 };
+  } else if (!timerRunning.value) {
+    return {
+      color: 'var(--color-warning)',
+      transform: 'scale(0.98)',
+    };
+  }
+  return undefined;
+});
 
 const timerInput = computed({
   get() {
@@ -351,62 +357,47 @@ function onTimerClicked() {
 
   if (timer.isRunning()) {
     timer.pause();
+    timerRunning.value = false;
+    scoreboardStore.queueSave();
     return;
   }
 
   const timeRemaining = timer.getRemaining();
-  if (timeRemaining) timer.start(timeRemaining);
+  if (timeRemaining) {
+    timer.start(timeRemaining);
+    timerRunning.value = true;
+  }
 }
 
-async function adjustSegment(delta: number = 1) {
+function adjustSegment(delta: number = 1) {
   const timerData = scoreboard.value?.timer;
 
   if (timerData && timerData.timeRemaining === 0) {
     timerData.timeRemaining = timerData.segmentDuration;
     timer.reset(timerData.segmentDuration);
+    timerRunning.value = false;
   }
 
   scoreboardStore.adjustSegment(delta);
-  // TODO - save
 }
 
-async function adjustTeamScore(team: 'A' | 'B', delta: number = 1) {
+function adjustTeamScore(team: 'A' | 'B', delta: number = 1) {
   scoreboardStore.adjustTeamScore(team, delta);
-  // TODO - save
 }
 
-/* ---------- Basketball Methods ---------- */
-async function setPossession(team: 'A' | 'B') {
+// --------------------------------------------------
+// Basketball Methods
+// --------------------------------------------------
+
+function setPossession(team: 'A' | 'B') {
   scoreboardStore.setPossession(team);
-  // TODO - save
 }
 
-async function adjustTeamFouls(team: 'A' | 'B', delta: number = 1) {
+function adjustTeamFouls(team: 'A' | 'B', delta: number = 1) {
   scoreboardStore.adjustTeamFouls(team, delta);
-  // TODO - save
-}
-
-let ro: ResizeObserver | null = null;
-
-function updateScale() {
-  if (!viewportRef.value || !scaleWrapper.value) return;
-
-  const vw = viewportRef.value.clientWidth;
-  const vh = viewportRef.value.clientHeight;
-
-  const scale = Math.min(vw / BASE_W, vh / BASE_H);
-
-  const x = (vw - BASE_W * scale) / 2;
-  const y = (vh - BASE_H * scale) / 2;
-
-  scaleWrapper.value.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
 }
 
 onMounted(() => {
-  updateScale();
-  ro = new ResizeObserver(updateScale);
-  if (viewportRef.value) ro.observe(viewportRef.value);
-
   timer = new CountdownTimer({
     durationMs: 600000,
     useHighResolutionTime: true,
@@ -421,41 +412,24 @@ onMounted(() => {
       if (scoreboard.value?.timer) {
         scoreboard.value.timer.timeRemaining = 0;
         playBuzzer();
+        scoreboardStore.queueSave();
       }
     },
   });
+
+  if (scoreboard.value?.timer?.timeRemaining)
+    timer.reset(scoreboard.value.timer.timeRemaining);
 });
 
 onUnmounted(() => {
-  ro?.disconnect();
-  ro = null;
-
   editMode.value = 'none';
   timer.stop();
   stopAllAudio();
+  scoreboardStore.queueSave();
 });
 </script>
 
 <style scoped>
-.viewport {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.scale-wrapper {
-  width: 1280px;
-  height: 720px;
-
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  transform-origin: top left;
-}
-
 .canvas {
   width: 100%;
   height: 100%;
@@ -681,9 +655,6 @@ onUnmounted(() => {
   width: 600px;
 }
 
-/* =========================
-   FOUL BLOCK (LEFT / RIGHT)
-========================= */
 .hud.basketball .foul-block {
   display: flex;
   flex-direction: column;
@@ -711,9 +682,6 @@ onUnmounted(() => {
   opacity: 0.4;
 }
 
-/* =========================
-   CENTER (POSSESSION)
-========================= */
 .hud.basketball .hud-center {
   display: flex;
   justify-content: center;
@@ -739,9 +707,6 @@ onUnmounted(() => {
   transform: scale(1.05);
 }
 
-/* =========================
-   SAFETY: SIDE CONTAINERS
-========================= */
 .hud.basketball .hud-side {
   display: flex;
   align-items: center;

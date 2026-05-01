@@ -2,6 +2,15 @@ import { defineStore } from 'pinia';
 import type { Scoreboard } from '../interfaces/scoreboard';
 import type { SportType } from '../interfaces/common';
 import { createScoreboard } from '../engines/scoreboardEngine';
+import {
+  deleteScoreboard,
+  getBracket,
+  getScoreboard,
+  saveScoreboard,
+} from '../db/indexedDb';
+import type { TeamSlot } from '../interfaces/bracket';
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useScoreboardStore = defineStore('scoreboard', {
   state: () => ({
@@ -14,99 +23,138 @@ export const useScoreboardStore = defineStore('scoreboard', {
   },
 
   actions: {
-    async loadScoreboard() {
-      // TODO - load saved manual scoreboard from indexedDb
+    async loadScoreboard(): Promise<Scoreboard | undefined> {
+      return await getScoreboard();
     },
 
-    async saveScoreboard() {
+    async saveCurrentScoreboard() {
+      if (!this.scoreboard) return;
+      await saveScoreboard(this.scoreboard);
+    },
+
+    queueSave(delay = 300) {
+      if (saveTimer) clearTimeout(saveTimer);
+
+      saveTimer = setTimeout(async () => {
+        if (!this.scoreboard) return;
+        await saveScoreboard(this.scoreboard);
+      }, delay);
+    },
+
+    async deleteCurrentScoreboard() {
+      this.scoreboard = null;
+      await deleteScoreboard();
+    },
+
+    applyChange(fn: () => void, persist = true) {
       if (!this.scoreboard) return;
 
-      // TODO - save
-    },
+      fn();
 
-    async deleteScoreboard() {
-      // TODO - delete saved manual scoreboard from indexedDb
+      if (persist) {
+        this.queueSave();
+      }
     },
 
     setNewScoreboard(sport: SportType) {
       this.scoreboard = createScoreboard(sport);
+      this.queueSave();
     },
 
-    setBracketMatchScoreboard(bracketId: string, matchId: string) {
-      console.info(bracketId, matchId);
-      // TODO - get scoreboard from bracket store by bracketId and matchId
-    },
+    async setBracketMatchScoreboard(bracketId: string, matchId: string) {
+      const bracket = await getBracket(bracketId);
+      const match = bracket?.matches.find((m) => m.id === matchId);
 
-    clearScoreboard() {
-      this.scoreboard = null;
+      if (!bracket || !match) return;
+
+      const resolveTeam = (slot: TeamSlot) =>
+        bracket.teams.find((t) => t.id === slot.id);
+
+      const teamA = resolveTeam(match.teamA as TeamSlot);
+      const teamB = resolveTeam(match.teamB as TeamSlot);
+
+      if (!teamA || !teamB) return;
+
+      this.scoreboard = createScoreboard(bracket.sport);
+      this.scoreboard.teamA = teamA.name;
+      this.scoreboard.teamB = teamB.name;
+      this.scoreboard.bracketId = bracketId;
+      this.scoreboard.matchId = matchId;
+
+      this.queueSave();
     },
 
     setTeamScore(team: 'A' | 'B', score: number | null) {
-      if (!this.scoreboard) return;
+      this.applyChange(() => {
+        if (!this.scoreboard) return;
 
-      switch (team) {
-        case 'A':
-          this.scoreboard.scoreA = score;
-          break;
-        case 'B':
-          this.scoreboard.scoreB = score;
-      }
+        if (team === 'A') this.scoreboard.scoreA = score;
+        else this.scoreboard.scoreB = score;
+      });
     },
 
-    adjustTeamScore(team: 'A' | 'B', delta: number = 1) {
-      if (!this.scoreboard) return;
+    adjustTeamScore(team: 'A' | 'B', delta = 1) {
+      this.applyChange(() => {
+        if (!this.scoreboard) return;
 
-      const current =
-        (team === 'A' ? this.scoreboard.scoreA : this.scoreboard.scoreB) ?? 0;
+        const current =
+          team === 'A' ? this.scoreboard.scoreA : this.scoreboard.scoreB;
 
-      const next = Math.max(0, current + delta);
+        const next = Math.max(0, (current ?? 0) + delta);
 
-      this.setTeamScore(team, next);
+        if (team === 'A') this.scoreboard.scoreA = next;
+        else this.scoreboard.scoreB = next;
+      });
     },
 
     setSegment(value: number) {
-      if (!this.scoreboard) return;
-
-      this.scoreboard.segment = value;
+      this.applyChange(() => {
+        if (!this.scoreboard) return;
+        this.scoreboard.segment = value;
+      });
     },
 
-    adjustSegment(delta: number = 1) {
-      if (!this.scoreboard) return;
+    adjustSegment(delta = 1) {
+      this.applyChange(() => {
+        if (!this.scoreboard) return;
 
-      const current = this.scoreboard.segment;
-
-      const next = Math.max(1, current + delta);
-
-      this.setSegment(next);
+        const next = Math.max(1, this.scoreboard.segment + delta);
+        this.scoreboard.segment = next;
+      });
     },
+
+    // --------------------------------------------------
+    // Basketball
+    // --------------------------------------------------
 
     setPossession(team: 'A' | 'B') {
-      if (this.scoreboard?.type !== 'basketball') return;
-
-      this.scoreboard.possession = team;
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'basketball') return;
+        this.scoreboard.possession = team;
+      });
     },
 
     setTeamFouls(team: 'A' | 'B', fouls: number) {
-      if (this.scoreboard?.type !== 'basketball') return;
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'basketball') return;
 
-      switch (team) {
-        case 'A':
-          this.scoreboard.foulsA = fouls;
-          break;
-        case 'B':
-          this.scoreboard.foulsB = fouls;
-      }
+        if (team === 'A') this.scoreboard.foulsA = fouls;
+        else this.scoreboard.foulsB = fouls;
+      });
     },
 
-    adjustTeamFouls(team: 'A' | 'B', delta: number) {
-      if (this.scoreboard?.type !== 'basketball') return;
+    adjustTeamFouls(team: 'A' | 'B', delta = 1) {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'basketball') return;
 
-      const current =
-        team === 'A' ? this.scoreboard.foulsA : this.scoreboard.foulsB;
+        const current =
+          team === 'A' ? this.scoreboard.foulsA : this.scoreboard.foulsB;
 
-      const next = Math.max(0, current + delta);
+        const next = Math.max(0, current + delta);
 
-      this.setTeamFouls(team, next);
+        if (team === 'A') this.scoreboard.foulsA = next;
+        else this.scoreboard.foulsB = next;
+      });
     },
   },
 });

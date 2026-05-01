@@ -9,31 +9,42 @@
       <p>Select a sport to start a scoreboard session.</p>
     </section>
 
+    <!-- Resume Card -->
+    <section v-if="savedScoreboard" class="resume">
+      <h3 class="resume-title">Resume Last Session</h3>
+
+      <div class="card" @click="resumeScoreboard">
+        <div class="resume-row">
+          <span class="label">Sport</span>
+          <span class="value">{{ savedScoreboard.type }}</span>
+        </div>
+
+        <div class="resume-row">
+          <span class="label">Match</span>
+          <span class="value">
+            {{ savedScoreboard.teamA || 'Team A' }} vs
+            {{ savedScoreboard.teamB || 'Team B' }}
+          </span>
+        </div>
+
+        <div class="resume-row">
+          <span class="label">Score</span>
+          <span class="value">
+            {{ savedScoreboard.scoreA ?? 0 }} -
+            {{ savedScoreboard.scoreB ?? 0 }}
+          </span>
+        </div>
+      </div>
+    </section>
+
     <!-- Cards -->
     <section class="cards">
-      <div
-        :to="{ name: 'scoreboard-play' }"
-        class="card scoreboard-item"
-        @click="createScoreboard('generic')"
-      >
+      <div class="card scoreboard-item" @click="createScoreboard('generic')">
         <h3><Icon name="trophy" />Generic</h3>
         <p>Generic scoreboard with timer and scoring.</p>
       </div>
 
-      <!-- <div
-        :to="{ name: 'scoreboard-play' }"
-        class="card scoreboard-item"
-        @click="createScoreboard('baseball')"
-      >
-        <h3><Icon name="baseball" />Baseball</h3>
-        <p>Runs, balls, strikes, outs, and inning tracking.</p>
-      </div> -->
-
-      <div
-        :to="{ name: 'scoreboard-play' }"
-        class="card scoreboard-item"
-        @click="createScoreboard('basketball')"
-      >
+      <div class="card scoreboard-item" @click="createScoreboard('basketball')">
         <h3><Icon name="basketball" />Basketball</h3>
         <p>Timer, fouls, possession, and score tracking.</p>
       </div>
@@ -42,12 +53,29 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useScoreboardStore } from '../../stores/scoreboard';
+import type { Scoreboard } from '../../interfaces/scoreboard';
 import type { SportType } from '../../interfaces/common';
 
 const router = useRouter();
 const scoreboardStore = useScoreboardStore();
+
+const savedScoreboard = ref<Scoreboard | undefined>(undefined);
+
+onMounted(async () => {
+  savedScoreboard.value = await scoreboardStore.loadScoreboard();
+});
+
+function resumeScoreboard() {
+  if (!savedScoreboard.value) return;
+
+  // hydrate store
+  scoreboardStore.scoreboard = savedScoreboard.value;
+
+  router.push({ name: 'scoreboard-play' });
+}
 
 async function createScoreboard(sport: SportType) {
   scoreboardStore.setNewScoreboard(sport);
@@ -80,6 +108,42 @@ async function createScoreboard(sport: SportType) {
   line-height: 1.5;
 }
 
+/* Resume */
+.resume {
+  margin-bottom: 24px;
+}
+
+.resume-title {
+  margin-bottom: 12px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.resume-card {
+  border: 1px solid var(--border-color, #333);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.resume-card:hover {
+  transform: translateY(-2px);
+}
+
+.resume-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.value {
+  font-weight: 500;
+}
+
+/* Cards */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -89,7 +153,6 @@ async function createScoreboard(sport: SportType) {
 .card h3 {
   display: flex;
   align-items: center;
-  justify-content: start;
   gap: 8px;
   margin: 0;
 }

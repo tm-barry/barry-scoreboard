@@ -20,6 +20,7 @@
   --color-danger-disabled: rgba(220, 38, 38, 0.4);
   --color-danger-shadow: rgba(220, 38, 38, 0.25);
   --color-danger-shadow-strong: rgba(220, 38, 38, 0.35);
+  --color-warning: #f59e0b;
   --social-bg: rgba(243, 244, 246, 0.6);
   --shadow:
     rgba(0, 0, 0, 0.08) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
@@ -64,6 +65,7 @@
     --color-primary-bg: rgba(47, 144, 255, 0.18);
     --color-primary-border: rgba(47, 144, 255, 0.5);
     --color-primary-disabled: #50607c;
+    --color-warning: #fbbf24;
     --text-secondary: #b3b1be;
     --social-bg: rgba(31, 41, 55, 0.5);
     --shadow:
