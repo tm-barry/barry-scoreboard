@@ -340,9 +340,11 @@ const formattedTime = computed(() => {
 function toggleEdit() {
   if (isEditing.value) {
     timer.reset(timerInput.value);
+    scoreboardStore.queueSave();
   } else {
     timer.pause();
   }
+  timerRunning.value = false;
   isEditing.value = !isEditing.value;
 }
 
