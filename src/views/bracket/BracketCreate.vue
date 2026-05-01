@@ -13,7 +13,6 @@
 
       <select v-model="sport">
         <option value="generic">Generic</option>
-        <option value="baseball">Baseball</option>
         <option value="basketball">Basketball</option>
       </select>
     </section>

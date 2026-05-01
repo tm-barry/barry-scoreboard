@@ -10,6 +10,17 @@
         />
       </div>
 
+      <!-- Bracket Match Button -->
+      <div v-if="hasBracketMatch" class="bracket-button">
+        <IconButton
+          name="network"
+          :icon-size="36"
+          :icon-class="'rotate-90'"
+          :disabled="!canSaveBracketMatch"
+          @click="saveBracketMatch()"
+        />
+      </div>
+
       <!-- Timer -->
       <div class="top-bar">
         <div v-if="!baseballScoreboard" class="timer" @click="onTimerClicked">
@@ -199,7 +210,10 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useBracketStore } from '../../stores/bracket';
 import { useScoreboardStore } from '../../stores/scoreboard';
+import { useConfirm } from '../../composables/useConfirm';
 import { storeToRefs } from 'pinia';
 import type {
   BaseballScoreboard,
@@ -213,10 +227,13 @@ import { initAudio, playBuzzer, stopAllAudio } from '../../engines/audioEngine';
 
 type EditMode = 'none' | 'segmentDuration' | 'timeRemaining';
 
-let timer: CountdownTimer;
+const router = useRouter();
+const { confirm } = useConfirm();
 
+let timer: CountdownTimer;
+const bracketStore = useBracketStore();
 const scoreboardStore = useScoreboardStore();
-const { scoreboard } = storeToRefs(scoreboardStore);
+const { scoreboard, hasBracketMatch } = storeToRefs(scoreboardStore);
 const editMode = ref<EditMode>('none');
 const timerRunning = ref(false);
 
@@ -276,6 +293,14 @@ const isEditing = computed({
       editMode.value = 'none';
     }
   },
+});
+
+const canSaveBracketMatch = computed(() => {
+  return (
+    scoreboard.value &&
+    hasBracketMatch.value &&
+    (scoreboard.value.scoreA || 0) != (scoreboard.value.scoreB || 0)
+  );
 });
 
 const baseballScoreboard = computed(() =>
@@ -346,6 +371,32 @@ function toggleEdit() {
   }
   timerRunning.value = false;
   isEditing.value = !isEditing.value;
+}
+
+async function saveBracketMatch() {
+  if (!scoreboard.value?.bracketId || !scoreboard.value?.matchId) return;
+
+  const winner =
+    (scoreboard.value.scoreA || 0) > (scoreboard.value.scoreB || 0)
+      ? scoreboard.value.teamA || 'Team A'
+      : scoreboard.value.teamB || 'Team B';
+
+  const ok = await confirm({
+    title: 'Confirm Winner',
+    message: `Do you want to set ${winner} as the winner of the match?`,
+    confirmText: 'Yes',
+    cancelText: 'No',
+  });
+
+  if (!ok) return;
+
+  await bracketStore.setBracketMatchWinnerByScore(
+    scoreboard.value.bracketId,
+    scoreboard.value.matchId,
+    scoreboard.value.scoreA || 0,
+    scoreboard.value.scoreB || 0,
+  );
+  router.push({ name: 'bracket-manage' });
 }
 
 function onTimerClicked() {
@@ -451,6 +502,14 @@ onUnmounted(() => {
   position: absolute;
   top: 16px;
   right: 16px;
+  z-index: 10;
+  opacity: 0.8;
+}
+
+.bracket-button {
+  position: absolute;
+  top: 16px;
+  left: 16px;
   z-index: 10;
   opacity: 0.8;
 }

@@ -44,7 +44,7 @@ const props = withDefaults(
     fitSafePadding?: number;
   }>(),
   {
-    minZoom: 0.5,
+    minZoom: 0.75,
     maxZoom: 2.5,
     padding: 50,
     fitSafePadding: 16,
@@ -229,8 +229,20 @@ function fitToView() {
 
   scale.value = newScale;
 
-  offsetX.value = (vw - contentW * newScale) / 2;
-  offsetY.value = (vh - contentH * newScale) / 2;
+  const scaledW = contentW * newScale;
+  const scaledH = contentH * newScale;
+
+  if (scaledW <= vw) {
+    offsetX.value = (vw - scaledW) / 2;
+  } else {
+    offsetX.value = props.fitSafePadding * newScale;
+  }
+
+  if (scaledH <= vh) {
+    offsetY.value = (vh - scaledH) / 2;
+  } else {
+    offsetY.value = props.fitSafePadding * newScale;
+  }
 
   clamp();
 }

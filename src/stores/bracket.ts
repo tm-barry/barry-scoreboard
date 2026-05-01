@@ -4,6 +4,8 @@ import { deleteBracket, saveBracket, getAllBrackets } from '../db/indexedDb';
 import {
   setMatchWinner as applyWinner,
   unsetMatchWinner as unsetWinner,
+  setMatchScore,
+  setMatchWinnerByScore,
 } from '../engines/bracketEngine';
 
 export const useBracketStore = defineStore('bracket', {
@@ -62,6 +64,38 @@ export const useBracketStore = defineStore('bracket', {
       if (!this.currentBracket) return;
 
       let updated = applyWinner(this.currentBracket, matchId, teamId);
+      updated = touch(updated);
+      this.currentBracket = updated;
+
+      await saveBracket(updated);
+    },
+
+    async setBracketMatchWinnerByScore(
+      bracketId: string,
+      matchId: string,
+      scoreA: number,
+      scoreB: number,
+    ) {
+      if (this.currentBracket?.id !== bracketId) {
+        await this.loadBrackets();
+        this.currentBracket =
+          this.brackets.find((br) => br.id === bracketId) ?? null;
+      }
+
+      if (!this.currentBracket) return;
+
+      let updated = setMatchScore(this.currentBracket, matchId, scoreA, scoreB);
+      updated = setMatchWinnerByScore(updated, matchId);
+      updated = touch(updated);
+      this.currentBracket = updated;
+
+      await saveBracket(updated);
+    },
+
+    async setMatchWinnerByScore(matchId: string) {
+      if (!this.currentBracket) return;
+
+      let updated = setMatchWinnerByScore(this.currentBracket, matchId);
       updated = touch(updated);
       this.currentBracket = updated;
 

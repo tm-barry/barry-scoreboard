@@ -1,6 +1,12 @@
 <template>
-  <button class="icon-btn" :style="buttonStyle" :aria-label="label">
-    <Icon :name="name" :size="iconSize" />
+  <button
+    class="icon-btn"
+    :class="{ disabled: disabled }"
+    :style="buttonStyle"
+    :aria-label="label"
+    :disabled="disabled"
+  >
+    <Icon :name="name" :size="iconSize" :class="iconClass" />
   </button>
 </template>
 
@@ -14,11 +20,15 @@ const props = withDefaults(
     iconSize?: number;
     buttonPadding?: number;
     label?: string;
+    iconClass?: string;
+    disabled?: boolean;
   }>(),
   {
     iconSize: 24,
     buttonPadding: 8,
     label: undefined,
+    iconClass: undefined,
+    disabled: false,
   },
 );
 
@@ -38,5 +48,13 @@ const buttonStyle = computed(() => ({
   border: none;
   cursor: pointer;
   padding: 0;
+}
+
+.icon-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  color: var(--text-secondary);
+  transform: none;
+  pointer-events: none;
 }
 </style>

@@ -33,37 +33,51 @@
           class="match"
           :style="getMatchStyle(match.id)"
         >
-          <!-- Team A -->
-          <button
-            class="team"
-            :class="
-              isWinner(match, match.teamA) ? 'primary-btn' : 'secondary-btn'
-            "
-            :style="getTeamStyle()"
-            :disabled="teamButtonDisabled(match.teamA)"
-            @click="selectWinner(match, match.teamA)"
-          >
-            <sup v-if="getTeamSeed(match.teamA)">
-              {{ getTeamSeed(match.teamA) }}
-            </sup>
-            {{ getTeamName(match.teamA) }}
-          </button>
+          <div class="match-teams" :style="getMatchTeamsStyle()">
+            <!-- Team A -->
+            <button
+              class="team"
+              :class="
+                isWinner(match, match.teamA) ? 'primary-btn' : 'secondary-btn'
+              "
+              :style="getTeamStyle()"
+              :disabled="teamButtonDisabled(match.teamA)"
+              @click="selectWinner(match, match.teamA)"
+            >
+              <span class="team-name">
+                <sup v-if="getTeamSeed(match.teamA)">
+                  {{ getTeamSeed(match.teamA) }}
+                </sup>
+                {{ getTeamName(match.teamA) }}
+              </span>
+            </button>
+
+            <!-- Team B -->
+            <button
+              class="team"
+              :class="
+                isWinner(match, match.teamB) ? 'primary-btn' : 'secondary-btn'
+              "
+              :style="getTeamStyle()"
+              :disabled="teamButtonDisabled(match.teamB)"
+              @click="selectWinner(match, match.teamB)"
+            >
+              <sup v-if="getTeamSeed(match.teamB)">
+                {{ getTeamSeed(match.teamB) }}
+              </sup>
+              {{ getTeamName(match.teamB) }}
+            </button>
+          </div>
 
           <!-- Team B -->
-          <button
-            class="team"
-            :class="
-              isWinner(match, match.teamB) ? 'primary-btn' : 'secondary-btn'
-            "
-            :style="getTeamStyle()"
-            :disabled="teamButtonDisabled(match.teamB)"
-            @click="selectWinner(match, match.teamB)"
-          >
-            <sup v-if="getTeamSeed(match.teamB)">
-              {{ getTeamSeed(match.teamB) }}
-            </sup>
-            {{ getTeamName(match.teamB) }}
-          </button>
+          <div class="match-actions">
+            <IconButton
+              name="monitor"
+              :icon-size="20"
+              class="scoreboard-btn"
+              @click.stop="openScoreboard(bracket, match)"
+            />
+          </div>
         </div>
       </div>
     </template>
@@ -80,9 +94,11 @@
 
 <script setup lang="ts">
 import { computed, ref, type StyleValue } from 'vue';
+import { useRouter } from 'vue-router';
 import { useBracketStore } from '../../stores/bracket';
+import { useScoreboardStore } from '../../stores/scoreboard';
 import InteractiveViewport from '../../components/ui/InteractiveViewport.vue';
-import type { Match, Slot } from '../../interfaces/bracket';
+import type { Bracket, Match, Slot } from '../../interfaces/bracket';
 import {
   computeBracketLayout,
   computeEdges,
@@ -91,7 +107,9 @@ import {
   TEAM_HEIGHT,
 } from '../../engines/bracketLayout';
 
+const router = useRouter();
 const bracketStore = useBracketStore();
+const scoreboardStore = useScoreboardStore();
 
 const isDragging = ref(false);
 
@@ -133,6 +151,11 @@ function getMatchStyle(matchId: string): StyleValue {
     position: 'absolute',
     transform: `translate(${l.x}px, ${l.y}px)`,
     width: `${MATCH_WIDTH}px`,
+  };
+}
+
+function getMatchTeamsStyle(): StyleValue {
+  return {
     gap: `${TEAM_GAP}px`,
   };
 }
@@ -162,6 +185,17 @@ function selectWinner(match: Match, slot: Slot) {
 
   bracketStore.setMatchWinner(match.id, slot.id);
 }
+
+async function openScoreboard(bracket: Bracket, match: Match) {
+  if (isDragging.value) return;
+
+  const success = await scoreboardStore.setBracketMatchScoreboard(
+    bracket.id,
+    match.id,
+  );
+
+  if (success) router.push({ name: 'scoreboard-play' });
+}
 </script>
 
 <style scoped>
@@ -173,8 +207,23 @@ function selectWinner(match: Match, slot: Slot) {
 .match {
   position: absolute;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   z-index: 2;
+}
+
+.match-teams {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.match-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .connections {
@@ -190,8 +239,15 @@ function selectWinner(match: Match, slot: Slot) {
   overflow: hidden;
 }
 
-.primary-btn {
-  font-weight: 600;
+.team-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.2;
 }
 
 .viewport-controls {

@@ -61,11 +61,14 @@ export const useScoreboardStore = defineStore('scoreboard', {
       this.queueSave();
     },
 
-    async setBracketMatchScoreboard(bracketId: string, matchId: string) {
+    async setBracketMatchScoreboard(
+      bracketId: string,
+      matchId: string,
+    ): Promise<boolean> {
       const bracket = await getBracket(bracketId);
       const match = bracket?.matches.find((m) => m.id === matchId);
 
-      if (!bracket || !match) return;
+      if (!bracket || !match) return false;
 
       const resolveTeam = (slot: TeamSlot) =>
         bracket.teams.find((t) => t.id === slot.id);
@@ -73,7 +76,7 @@ export const useScoreboardStore = defineStore('scoreboard', {
       const teamA = resolveTeam(match.teamA as TeamSlot);
       const teamB = resolveTeam(match.teamB as TeamSlot);
 
-      if (!teamA || !teamB) return;
+      if (!teamA || !teamB) return false;
 
       this.scoreboard = createScoreboard(bracket.sport);
       this.scoreboard.teamA = teamA.name;
@@ -82,6 +85,7 @@ export const useScoreboardStore = defineStore('scoreboard', {
       this.scoreboard.matchId = matchId;
 
       this.queueSave();
+      return true;
     },
 
     setTeamScore(team: 'A' | 'B', score: number | null) {

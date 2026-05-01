@@ -22,7 +22,7 @@ export interface BracketLayout {
 }
 
 // Constants
-export const MATCH_WIDTH = 220;
+export const MATCH_WIDTH = 275;
 export const TEAM_HEIGHT = 64;
 export const MATCH_HEIGHT = TEAM_HEIGHT * 2;
 export const ROUND_GAP = 120;
