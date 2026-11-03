@@ -1,6 +1,9 @@
 <template>
   <ViewportScaler class="no-select">
-    <div class="canvas" :class="{ editing: isEditing }">
+    <div
+      class="canvas"
+      :class="{ editing: isEditing, compact: !!footballScoreboard }"
+    >
       <!-- Edit -->
       <div class="edit-button">
         <IconButton
@@ -22,7 +25,7 @@
       </div>
 
       <!-- Timer -->
-      <div class="top-bar">
+      <div class="top-bar" :class="{ compact: footballScoreboard }">
         <div v-if="!baseballScoreboard" class="timer" @click="onTimerClicked">
           <TimeInput
             v-if="isEditing"
@@ -76,7 +79,10 @@
                 {{ scoreboard?.scoreA ?? 0 }}
               </div>
             </div>
-            <div class="score-controls">
+            <div
+              class="score-controls"
+              :class="{ football: footballScoreboard }"
+            >
               <IconButton
                 name="minus"
                 :icon-size="36"
@@ -87,6 +93,17 @@
                 :icon-size="36"
                 @click.stop="adjustTeamScore('A')"
               />
+              <template v-if="footballScoreboard">
+                <button
+                  v-for="pts in footballQuickScores"
+                  :key="pts"
+                  type="button"
+                  class="score-chip"
+                  @click.stop="adjustTeamScore('A', pts)"
+                >
+                  +{{ pts }}
+                </button>
+              </template>
             </div>
           </div>
         </div>
@@ -113,7 +130,10 @@
                 {{ scoreboard?.scoreB ?? 0 }}
               </div>
             </div>
-            <div class="score-controls">
+            <div
+              class="score-controls"
+              :class="{ football: footballScoreboard }"
+            >
               <IconButton
                 name="minus"
                 :icon-size="36"
@@ -124,85 +144,39 @@
                 :icon-size="36"
                 @click.stop="adjustTeamScore('B')"
               />
+              <template v-if="footballScoreboard">
+                <button
+                  v-for="pts in footballQuickScores"
+                  :key="pts"
+                  type="button"
+                  class="score-chip"
+                  @click.stop="adjustTeamScore('B', pts)"
+                >
+                  +{{ pts }}
+                </button>
+              </template>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Sports Overlay -->
-      <div class="overlay">
-        <!-- TODO - Finish Baseball Overlay -->
-        <div v-if="baseballScoreboard" class="hud baseball">
-          <div>B: {{ baseballScoreboard.balls }}</div>
-          <div>S: {{ baseballScoreboard.strikes }}</div>
-          <div>O: {{ baseballScoreboard.outs }}</div>
-        </div>
-
-        <div v-if="basketballScoreboard" class="hud basketball">
-          <!-- LEFT (Team A) -->
-          <div class="hud-side left">
-            <div class="foul-block">
-              <div class="label">Fouls</div>
-              <div class="value" @click="adjustTeamFouls('A')">
-                {{ basketballScoreboard.foulsA }}
-              </div>
-
-              <div class="foul-controls">
-                <IconButton
-                  name="minus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamFouls('A', -1)"
-                />
-                <IconButton
-                  name="plus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamFouls('A')"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- CENTER (Possession) -->
-          <div class="hud-center">
-            <Icon
-              name="arrowBigLeft"
-              class="arrow"
-              :class="{ active: basketballScoreboard.possession === 'A' }"
-              :size="64"
-              @click="setPossession('A')"
-            />
-            <Icon
-              name="arrowBigRight"
-              class="arrow"
-              :class="{ active: basketballScoreboard.possession === 'B' }"
-              :size="64"
-              @click="setPossession('B')"
-            />
-          </div>
-
-          <!-- RIGHT (Team B) -->
-          <div class="hud-side right">
-            <div class="foul-block">
-              <div class="label">Fouls</div>
-              <div class="value" @click="adjustTeamFouls('B')">
-                {{ basketballScoreboard.foulsB }}
-              </div>
-
-              <div class="foul-controls">
-                <IconButton
-                  name="minus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamFouls('B', -1)"
-                />
-                <IconButton
-                  name="plus"
-                  :icon-size="36"
-                  @click.stop="adjustTeamFouls('B')"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Sports Overlay (generic has no HUD) -->
+      <div
+        class="overlay"
+        :class="{ flow: baseballScoreboard || footballScoreboard }"
+      >
+        <BaseballHud
+          v-if="baseballScoreboard"
+          :scoreboard="baseballScoreboard"
+        />
+        <BasketballHud
+          v-if="basketballScoreboard"
+          :scoreboard="basketballScoreboard"
+        />
+        <FootballHud
+          v-if="footballScoreboard"
+          :scoreboard="footballScoreboard"
+        />
       </div>
     </div>
   </ViewportScaler>
@@ -218,10 +192,13 @@ import { storeToRefs } from 'pinia';
 import type {
   BaseballScoreboard,
   BasketballScoreboard,
+  FootballScoreboard,
 } from '../../interfaces/scoreboard';
-import Icon from '../../components/icons/Icon.vue';
 import TimeInput from '../../components/ui/TimeInput.vue';
 import ViewportScaler from '../../components/ui/ViewportScaler.vue';
+import BaseballHud from './BaseballHud.vue';
+import BasketballHud from './BasketballHud.vue';
+import FootballHud from './FootballHud.vue';
 import { CountdownTimer } from '../../utils/timer';
 import { initAudio, playBuzzer, stopAllAudio } from '../../engines/audioEngine';
 
@@ -236,6 +213,8 @@ const scoreboardStore = useScoreboardStore();
 const { scoreboard, hasBracketMatch } = storeToRefs(scoreboardStore);
 const editMode = ref<EditMode>('none');
 const timerRunning = ref(false);
+
+const footballQuickScores = [2, 3, 6];
 
 const editingSegmentDuration = computed(
   () => editMode.value === 'segmentDuration',
@@ -315,10 +294,18 @@ const basketballScoreboard = computed(() =>
     : null,
 );
 
+const footballScoreboard = computed(() =>
+  scoreboard.value?.type === 'football'
+    ? (scoreboard.value as FootballScoreboard)
+    : null,
+);
+
 const segmentName = computed(() => {
   switch (scoreboard.value?.type) {
     case 'baseball':
       return 'Inning';
+    case 'football':
+      return 'Quarter';
     default:
       return 'Period';
   }
@@ -438,18 +425,6 @@ function adjustTeamScore(team: 'A' | 'B', delta: number = 1) {
   scoreboardStore.adjustTeamScore(team, delta);
 }
 
-// --------------------------------------------------
-// Basketball Methods
-// --------------------------------------------------
-
-function setPossession(team: 'A' | 'B') {
-  scoreboardStore.setPossession(team);
-}
-
-function adjustTeamFouls(team: 'A' | 'B', delta: number = 1) {
-  scoreboardStore.adjustTeamFouls(team, delta);
-}
-
 onMounted(() => {
   timer = new CountdownTimer({
     durationMs: 600000,
@@ -522,6 +497,47 @@ onUnmounted(() => {
   justify-content: center;
   gap: 40px;
   padding-top: 12px;
+}
+
+/* Football: tighter layout so the in-flow HUD fits */
+.canvas.compact .top-bar {
+  flex-direction: row;
+  gap: 120px;
+  padding-top: 8px;
+}
+
+.canvas.compact .timer {
+  width: 440px;
+  text-align: center;
+}
+
+.canvas.compact .segment-name {
+  font-size: 28px;
+}
+
+.canvas.compact .segment-value {
+  font-size: 56px;
+}
+
+.canvas.compact .segment-controls {
+  padding-top: 6px;
+}
+
+.canvas.compact .name {
+  min-height: 56px;
+}
+
+.canvas.compact .score {
+  font-size: 130px;
+  min-height: 110px;
+}
+
+.canvas.compact .score-controls {
+  padding-top: 12px;
+}
+
+.canvas.compact .overlay.flow {
+  padding: 4px 0 12px;
 }
 
 .timer {
@@ -679,6 +695,21 @@ onUnmounted(() => {
   opacity: 0.35;
 }
 
+/* tighter spacing to fit the +2/+3/+6 chips */
+.score-controls.football {
+  gap: 14px;
+}
+
+.score-chip {
+  font-size: 28px;
+  padding: 4px 14px;
+  background: transparent;
+  color: inherit;
+  border: 2px solid currentColor;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 /* VS stays centered */
 .vs {
   font-size: 36px;
@@ -687,7 +718,7 @@ onUnmounted(() => {
   letter-spacing: 2px;
 }
 
-/* OVERLAY */
+/* OVERLAY – each HUD component owns its own styles and re-enables pointer events */
 .overlay {
   position: absolute;
   bottom: 16px;
@@ -701,77 +732,9 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-.hud {
-  display: flex;
-  gap: 12px;
-  font-size: 14px;
-  opacity: 0.75;
-}
-
-/* Basketball */
-.hud.basketball {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  width: 600px;
-}
-
-.hud.basketball .foul-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  pointer-events: auto;
-}
-
-.hud.basketball .foul-block .label {
-  font-size: 24px;
-}
-
-.hud.basketball .foul-block .value {
-  font-size: 64px;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-}
-
-/* foul +/- buttons */
-.hud.basketball .foul-controls {
-  display: flex;
-  gap: 10px;
-  opacity: 0.4;
-}
-
-.hud.basketball .hud-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 30px;
-  pointer-events: auto;
-}
-
-/* arrows */
-.hud.basketball .arrow {
-  opacity: 0.2;
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-}
-
-.hud.basketball .arrow.active {
-  opacity: 1;
-}
-
-/* optional subtle emphasis */
-.hud.basketball .arrow:hover {
-  transform: scale(1.05);
-}
-
-.hud.basketball .hud-side {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
+/* In-flow HUD: takes the grid's 3rd row instead of floating over the scores */
+.overlay.flow {
+  position: static;
+  padding: 8px 0 16px;
 }
 </style>

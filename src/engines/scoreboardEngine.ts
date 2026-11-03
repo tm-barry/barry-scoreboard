@@ -1,5 +1,6 @@
 import type { SportType } from '../interfaces/common';
 import type { Scoreboard } from '../interfaces/scoreboard';
+import { createBaseballDefaults, createFootballDefaults } from './sportsEngine';
 
 export function createScoreboard(type: SportType): Scoreboard {
   const base = {
@@ -16,10 +17,7 @@ export function createScoreboard(type: SportType): Scoreboard {
       return {
         ...base,
         type,
-        halfInning: 'top',
-        balls: 0,
-        strikes: 0,
-        outs: 0,
+        ...createBaseballDefaults(), // halfInning: 'top', balls/strikes/outs: 0, bases all false
       };
 
     case 'basketball':
@@ -34,6 +32,21 @@ export function createScoreboard(type: SportType): Scoreboard {
         bonusB: 'none',
         possession: null,
       };
+
+    case 'football': {
+      const { down, toGo, ballOn, possession, timeoutsA, timeoutsB } =
+        createFootballDefaults();
+      return {
+        ...base,
+        type,
+        down,
+        toGo,
+        ballOn,
+        possession,
+        timeoutsA,
+        timeoutsB,
+      };
+    }
 
     case 'generic':
     default:

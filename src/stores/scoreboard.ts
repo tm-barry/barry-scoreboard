@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import type { Scoreboard } from '../interfaces/scoreboard';
 import type { SportType } from '../interfaces/common';
 import { createScoreboard } from '../engines/scoreboardEngine';
+import * as sports from '../engines/sportsEngine';
 import {
   deleteScoreboard,
   getBracket,
@@ -11,6 +12,14 @@ import {
 import type { TeamSlot } from '../interfaces/bracket';
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Fill in fields added after a scoreboard was saved (older baseball boards have no `bases`). */
+function normalizeScoreboard(sb: Scoreboard): Scoreboard {
+  if (sb.type === 'baseball' && !sb.bases) {
+    sb.bases = { first: false, second: false, third: false };
+  }
+  return sb;
+}
 
 export const useScoreboardStore = defineStore('scoreboard', {
   state: () => ({
@@ -24,7 +33,8 @@ export const useScoreboardStore = defineStore('scoreboard', {
 
   actions: {
     async loadScoreboard(): Promise<Scoreboard | undefined> {
-      return await getScoreboard();
+      const sb = await getScoreboard();
+      return sb ? normalizeScoreboard(sb) : undefined;
     },
 
     async saveCurrentScoreboard() {
@@ -128,15 +138,24 @@ export const useScoreboardStore = defineStore('scoreboard', {
     },
 
     // --------------------------------------------------
-    // Basketball
+    // Shared: basketball + football possession
     // --------------------------------------------------
 
     setPossession(team: 'A' | 'B') {
       this.applyChange(() => {
-        if (this.scoreboard?.type !== 'basketball') return;
-        this.scoreboard.possession = team;
+        const sb = this.scoreboard;
+        if (sb?.type === 'basketball') {
+          sb.possession = team;
+        } else if (sb?.type === 'football') {
+          // A change of possession starts a fresh 1st & 10
+          if (sb.possession !== team) sports.changePossession(sb, team);
+        }
       });
     },
+
+    // --------------------------------------------------
+    // Basketball
+    // --------------------------------------------------
 
     setTeamFouls(team: 'A' | 'B', fouls: number) {
       this.applyChange(() => {
@@ -158,6 +177,77 @@ export const useScoreboardStore = defineStore('scoreboard', {
 
         if (team === 'A') this.scoreboard.foulsA = next;
         else this.scoreboard.foulsB = next;
+      });
+    },
+
+    // --------------------------------------------------
+    // Baseball
+    // --------------------------------------------------
+
+    adjustBalls(delta = 1) {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'baseball') return;
+        sports.adjustBalls(this.scoreboard, delta);
+      });
+    },
+
+    adjustStrikes(delta = 1) {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'baseball') return;
+        sports.adjustStrikes(this.scoreboard, delta);
+      });
+    },
+
+    adjustOuts(delta = 1) {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'baseball') return;
+        sports.adjustOuts(this.scoreboard, delta);
+      });
+    },
+
+    toggleBase(base: 'first' | 'second' | 'third') {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'baseball') return;
+        sports.toggleBase(this.scoreboard, base);
+      });
+    },
+
+    setInningHalf(half: 'top' | 'bottom') {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'baseball') return;
+        this.scoreboard.halfInning = half;
+      });
+    },
+
+    // --------------------------------------------------
+    // Football
+    // --------------------------------------------------
+
+    adjustDown(delta = 1) {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'football') return;
+        sports.adjustDown(this.scoreboard, delta);
+      });
+    },
+
+    adjustToGo(delta = 1) {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'football') return;
+        sports.adjustToGo(this.scoreboard, delta);
+      });
+    },
+
+    firstDown() {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'football') return;
+        sports.firstDown(this.scoreboard);
+      });
+    },
+
+    adjustTimeouts(team: 'A' | 'B', delta = 1) {
+      this.applyChange(() => {
+        if (this.scoreboard?.type !== 'football') return;
+        sports.adjustTimeouts(this.scoreboard, team, delta);
       });
     },
   },

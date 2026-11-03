@@ -12,8 +12,9 @@
       <label>Sport</label>
 
       <select v-model="sport">
-        <option value="generic">Generic</option>
-        <option value="basketball">Basketball</option>
+        <option v-for="s in SPORTS" :key="s.type" :value="s.type">
+          {{ s.label }}
+        </option>
       </select>
     </section>
 
@@ -66,6 +67,7 @@ import { useBracketStore } from '../../stores/bracket';
 
 // Interfaces
 import type { Bracket, Team } from '../../interfaces/bracket';
+import { SPORTS } from '../../interfaces/common';
 import type { SportType } from '../../interfaces/common';
 
 // Engines

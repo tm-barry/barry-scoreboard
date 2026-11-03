@@ -16,7 +16,7 @@
       <div class="card" @click="resumeScoreboard">
         <div class="resume-row">
           <span class="label">Sport</span>
-          <span class="value">{{ savedScoreboard.type }}</span>
+          <span class="value sport">{{ savedScoreboard.type }}</span>
         </div>
 
         <div class="resume-row">
@@ -39,15 +39,19 @@
 
     <!-- Cards -->
     <section class="cards">
-      <div class="card scoreboard-item" @click="createScoreboard('generic')">
-        <h3><Icon name="trophy" />Generic</h3>
-        <p>Generic scoreboard with timer and scoring.</p>
-      </div>
-
-      <div class="card scoreboard-item" @click="createScoreboard('basketball')">
-        <h3><Icon name="basketball" />Basketball</h3>
-        <p>Timer, fouls, possession, and score tracking.</p>
-      </div>
+      <button
+        v-for="sport in sports"
+        :key="sport.type"
+        type="button"
+        class="card scoreboard-item"
+        @click="createScoreboard(sport.type)"
+      >
+        <Icon :name="sport.icon" :size="48" class="sport-icon" />
+        <div class="sport-text">
+          <h3>{{ sport.label }}</h3>
+          <p>{{ sport.description }}</p>
+        </div>
+      </button>
     </section>
   </div>
 </template>
@@ -63,6 +67,39 @@ const router = useRouter();
 const scoreboardStore = useScoreboardStore();
 
 const savedScoreboard = ref<Scoreboard | undefined>(undefined);
+
+// NOTE: 'baseball' and 'football' must exist in your Icon component's icon map.
+const sports: {
+  type: SportType;
+  label: string;
+  icon: string;
+  description: string;
+}[] = [
+  {
+    type: 'generic',
+    label: 'Generic',
+    icon: 'trophy',
+    description: 'Generic scoreboard with timer and scoring.',
+  },
+  {
+    type: 'baseball',
+    label: 'Baseball',
+    icon: 'baseball',
+    description: 'Innings, balls, strikes, outs, and runners on base.',
+  },
+  {
+    type: 'basketball',
+    label: 'Basketball',
+    icon: 'basketball',
+    description: 'Timer, fouls, possession, and score tracking.',
+  },
+  {
+    type: 'football',
+    label: 'Football',
+    icon: 'football',
+    description: 'Timer, down & distance, possession, and timeouts.',
+  },
+];
 
 onMounted(async () => {
   savedScoreboard.value = await scoreboardStore.loadScoreboard();
@@ -143,21 +180,73 @@ async function createScoreboard(sport: SportType) {
   font-weight: 500;
 }
 
+.value.sport {
+  text-transform: capitalize;
+}
+
+.scoreboard-view {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
 /* Cards */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(
+    2,
+    minmax(0, 1fr)
+  ); /* minmax(0,…) lets cards shrink instead of overflowing */
   gap: 16px;
-}
-
-.card h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .scoreboard-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 16px;
+  text-align: center;
   cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.sport-icon {
+  flex: 0 0 auto;
+}
+
+.sport-text h3 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.sport-text p {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Narrow windows: one column, horizontal rows */
+@media (max-width: 520px) {
+  .scoreboard-view {
+    padding: 16px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .scoreboard-item {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    text-align: left;
+  }
 }
 </style>

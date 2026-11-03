@@ -16,6 +16,7 @@ import {
 } from '@lucide/vue';
 import Baseball from './Baseball.vue';
 import Basketball from './Basketball.vue';
+import Football from './Football.vue';
 
 const icons = {
   // Lucide Icons
@@ -37,6 +38,7 @@ const icons = {
   // Custom Icons
   baseball: Baseball,
   basketball: Basketball,
+  football: Football,
 } as const;
 
 export default icons;
