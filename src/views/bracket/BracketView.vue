@@ -38,12 +38,17 @@
           </small>
         </div>
 
-        <!-- delete -->
-        <IconButton
-          name="trash"
-          class="danger trash-btn"
-          @click.stop="confirmDelete(b.id)"
-        />
+        <div class="item-actions">
+          <!-- edit -->
+          <IconButton name="pencil" @click.stop="editBracket(b.id)" />
+
+          <!-- delete -->
+          <IconButton
+            name="trash"
+            class="danger trash-btn"
+            @click.stop="confirmDelete(b.id)"
+          />
+        </div>
       </div>
     </section>
   </div>
@@ -73,6 +78,14 @@ function openBracket(id: string) {
 
   store.setCurrentBracket(bracket);
   router.push({ name: 'bracket-manage' });
+}
+
+function editBracket(id: string) {
+  const bracket = store.brackets.find((b) => b.id === id);
+  if (!bracket) return;
+
+  store.setCurrentBracket(bracket);
+  router.push({ name: 'bracket-edit' });
 }
 
 async function confirmDelete(id: string) {
@@ -145,7 +158,10 @@ onMounted(async () => {
   opacity: 0.7;
 }
 
-.trash-btn {
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex: 0 0 auto;
   margin-left: auto;
 }

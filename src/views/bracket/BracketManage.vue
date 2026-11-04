@@ -85,6 +85,7 @@
     <!-- Overlay controls -->
     <template #overlay="{ reset, fit }">
       <div class="viewport-controls">
+        <IconButton name="pencil" @click="editBracket" />
         <IconButton name="rotateCcw" @click="reset" />
         <IconButton name="frame" @click="fit" />
       </div>
@@ -184,6 +185,11 @@ function selectWinner(match: Match, slot: Slot) {
   }
 
   bracketStore.setMatchWinner(match.id, slot.id);
+}
+
+function editBracket() {
+  if (isDragging.value) return;
+  router.push({ name: 'bracket-edit' });
 }
 
 async function openScoreboard(bracket: Bracket, match: Match) {

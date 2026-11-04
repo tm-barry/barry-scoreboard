@@ -26,6 +26,18 @@ const routes = [
     component: BracketCreate,
   },
   {
+    path: '/bracket/edit',
+    name: 'bracket-edit',
+    component: BracketCreate,
+    beforeEnter: () => {
+      const store = useBracketStore();
+
+      if (!store.currentBracket) {
+        return { name: 'bracket' };
+      }
+    },
+  },
+  {
     path: '/bracket/manage',
     name: 'bracket-manage',
     component: BracketManage,

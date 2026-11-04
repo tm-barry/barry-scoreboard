@@ -1,10 +1,10 @@
 <template>
   <div class="create-bracket">
-    <h2>Create Bracket</h2>
+    <h2>{{ isEditing ? 'Edit Bracket' : 'Create Bracket' }}</h2>
 
     <!-- Bracket Name -->
     <section class="field">
-      <label>Bracket Name (optional)</label>
+      <label>Bracket Name{{ isEditing ? '' : ' (optional)' }}</label>
       <input v-model="bracketName" type="text" placeholder="Enter a name..." />
     </section>
 
@@ -21,8 +21,16 @@
     <!-- Teams -->
     <section class="teams">
       <label>Teams</label>
+      <small v-if="isEditing" class="hint">
+        Names can be changed. Teams and seeds are fixed once a bracket is
+        created.
+      </small>
 
-      <div v-for="(team, index) in teams" :key="index" class="team-row">
+      <div
+        v-for="(team, index) in teams"
+        :key="team.id || index"
+        class="team-row"
+      >
         <div class="input-wrapper">
           <small class="row-index">{{ index + 1 }}.</small>
           <input v-model="team.name" type="text" placeholder="Team name" />
@@ -33,9 +41,11 @@
           type="number"
           min="1"
           placeholder="Seed"
+          :disabled="isEditing"
         />
 
         <IconButton
+          v-if="!isEditing"
           name="trash"
           class="danger trash-btn"
           @click="removeTeam(index)"
@@ -43,25 +53,38 @@
       </div>
 
       <!-- Add Team -->
-      <div class="team-actions">
+      <div v-if="!isEditing" class="team-actions">
         <button type="button" class="secondary-btn flex-btn" @click="addTeam">
           <Icon name="plus" :size="18" /> Add Team
         </button>
       </div>
     </section>
 
-    <!-- Generate -->
+    <!-- Generate / Save -->
     <section class="actions">
-      <button class="primary-btn flex-btn" @click="generateBracket">
-        <Icon name="network" :size="18" class="rotate-90" />Generate Bracket
+      <button
+        v-if="isEditing"
+        type="button"
+        class="secondary-btn flex-btn"
+        @click="router.back()"
+      >
+        Cancel
+      </button>
+      <button class="primary-btn flex-btn" @click="submit">
+        <template v-if="isEditing">
+          <Icon name="check" :size="18" />Save Changes
+        </template>
+        <template v-else>
+          <Icon name="network" :size="18" class="rotate-90" />Generate Bracket
+        </template>
       </button>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, inject, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { createId } from '../../utils/id';
 import { useBracketStore } from '../../stores/bracket';
 
@@ -75,6 +98,10 @@ import { generateSingleEliminationMatches } from '../../engines/bracketEngine';
 
 const bracketStore = useBracketStore();
 const router = useRouter();
+const route = useRoute();
+
+// Same component serves both routes: 'bracket-create' and 'bracket-edit'
+const isEditing = computed(() => route.name === 'bracket-edit');
 
 const scrollToBottom = inject<() => void>('scrollToBottom');
 
@@ -108,6 +135,10 @@ function generateDefaultName() {
   return `Bracket ${local}`;
 }
 
+function submit() {
+  return isEditing.value ? saveChanges() : generateBracket();
+}
+
 async function generateBracket() {
   const finalName = bracketName.value.trim() || generateDefaultName();
 
@@ -138,7 +169,49 @@ async function generateBracket() {
   router.push({ name: 'bracket-manage' });
 }
 
+/**
+ * Edit mode: only the name, sport and team NAMES change. Team ids, seeds,
+ * matches and winners are left exactly as they were, so the bracket
+ * structure can't be disturbed.
+ */
+async function saveChanges() {
+  const current = bracketStore.currentBracket;
+  if (!current) return;
+
+  // Deep copy (JSON round trip also strips Vue's reactive proxies)
+  const updated: Bracket = JSON.parse(JSON.stringify(current));
+
+  updated.name = bracketName.value.trim() || current.name;
+  updated.sport = sport.value;
+
+  for (const team of updated.teams) {
+    const edited = teams.value.find((t) => t.id === team.id);
+    team.name = edited?.name.trim() || team.name; // blank keeps the old name
+  }
+
+  updated.updatedAt = Date.now();
+
+  bracketStore.setCurrentBracket(updated);
+  await bracketStore.saveCurrent();
+  router.replace({ name: 'bracket-manage' });
+}
+
 onMounted(() => {
+  if (isEditing.value) {
+    const current = bracketStore.currentBracket;
+
+    // Nothing loaded (e.g. page refresh): send them back to the list
+    if (!current) {
+      router.replace({ name: 'bracket' });
+      return;
+    }
+
+    bracketName.value = current.name;
+    sport.value = current.sport;
+    teams.value = current.teams.map((t) => ({ ...t }));
+    return;
+  }
+
   bracketName.value = '';
   sport.value = 'generic';
   teams.value = [
@@ -164,6 +237,12 @@ onMounted(() => {
 
 .teams {
   margin-bottom: 24px;
+}
+
+.hint {
+  display: block;
+  opacity: 0.7;
+  margin: 4px 0 12px;
 }
 
 .teams-header {
@@ -211,6 +290,11 @@ onMounted(() => {
   text-align: center;
 }
 
+.team-row input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .trash-btn {
   flex: 0 0 auto;
   margin-left: auto;
@@ -225,5 +309,6 @@ onMounted(() => {
 .actions {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
 </style>
